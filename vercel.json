@@ -7,10 +7,6 @@
       "config": {
         "distDir": "frontend/dist"
       }
-    },
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -19,12 +15,18 @@
       "dest": "/api/health.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "src": "/api/dishes/generate-vegan-alternative",
+      "dest": "/api/dishes/generate-vegan-alternative.js"
     },
     {
       "src": "/(.*)",
       "dest": "frontend/dist/$1"
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
 }
