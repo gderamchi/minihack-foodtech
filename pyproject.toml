@@ -1,0 +1,12 @@
+[project]
+name = "minihack-foodtech"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.120.2",
+    "httpx>=0.28.1",
+    "openfoodfacts>=3.1.0",
+    "uvicorn>=0.38.0",
+]
