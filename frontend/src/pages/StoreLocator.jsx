@@ -21,8 +21,15 @@ function StoreLocator() {
 
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [selectedStore, setSelectedStore] = useState(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 50,
+    total: 0,
+    hasMore: false
+  });
 
   // Default to Paris coordinates
   const defaultLocation = { latitude: 48.8566, longitude: 2.3522 };
@@ -62,20 +69,41 @@ function StoreLocator() {
     }
   };
 
-  const fetchNearbyStores = async () => {
+  const fetchNearbyStores = async (page = 1, append = false) => {
     try {
-      setLoading(true);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+      
       const response = await storesAPI.findNearby({
         longitude: userLocation.longitude,
         latitude: userLocation.latitude,
-        maxDistance: 10000 // 10km
+        maxDistance: 5000, // 5km to reduce initial load
+        limit: 50,
+        page: page
       });
-      setStores(response.data);
+      
+      if (append) {
+        setStores(prev => [...prev, ...response.data.stores]);
+      } else {
+        setStores(response.data.stores);
+      }
+      
+      setPagination(response.data.pagination);
     } catch (error) {
       console.error('Error fetching stores:', error);
       toast.error('Failed to load nearby stores');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMoreStores = () => {
+    if (pagination.hasMore && !loadingMore) {
+      fetchNearbyStores(pagination.page + 1, true);
     }
   };
 
@@ -85,9 +113,16 @@ function StoreLocator() {
       const response = await storesAPI.getRecommendationsForDish({
         dishId: dishFromState._id,
         longitude: userLocation.longitude,
-        latitude: userLocation.latitude
+        latitude: userLocation.latitude,
+        maxDistance: 5000 // 5km
       });
       setStores(response.data.stores);
+      setPagination({
+        page: 1,
+        limit: response.data.stores.length,
+        total: response.data.stores.length,
+        hasMore: false
+      });
       if (response.data.stores.length === 0) {
         toast.info('No stores found with these ingredients nearby');
       }
@@ -192,7 +227,8 @@ function StoreLocator() {
               <p className="text-xl text-gray-600">No stores found nearby</p>
             </div>
           ) : (
-            stores.map((store) => (
+            <>
+              {stores.map((store) => (
               <div
                 key={store._id}
                 onClick={() => setSelectedStore(store)}
@@ -282,7 +318,33 @@ function StoreLocator() {
                   </div>
                 )}
               </div>
-            ))
+              ))}
+              
+              {/* Load More Button */}
+              {pagination.hasMore && (
+                <div className="text-center py-4">
+                  <button
+                    onClick={loadMoreStores}
+                    disabled={loadingMore}
+                    className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  >
+                    {loadingMore ? (
+                      <>
+                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Loading more...
+                      </>
+                    ) : (
+                      `Load More (${pagination.total - stores.length} remaining)`
+                    )}
+                  </button>
+                </div>
+              )}
+              
+              {/* Store Count Info */}
+              <div className="text-center text-sm text-gray-500 py-2">
+                Showing {stores.length} of {pagination.total} stores
+              </div>
+            </>
           )}
         </div>
       </div>

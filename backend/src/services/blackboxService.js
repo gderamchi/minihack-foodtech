@@ -4,7 +4,7 @@ class BlackboxService {
   constructor() {
     this.apiKey = process.env.BLACKBOX_API_KEY;
     this.apiUrl = process.env.BLACKBOX_API_URL || 'https://api.blackbox.ai/chat/completions';
-    this.model = 'blackboxai/openai/gpt-4';
+    this.model = 'blackboxai/anthropic/claude-sonnet-4.5';
   }
 
   /**
@@ -100,61 +100,117 @@ class BlackboxService {
    */
   parseVeganAlternativeResponse(aiResponse, originalDish) {
     try {
-      // Try to extract JSON from the response - look for the last complete JSON object
+      console.log('Raw AI Response:', aiResponse);
+      
+      // Method 1: Try to find JSON block with code fence
+      let jsonMatch = aiResponse.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[1]);
+          return this.formatParsedRecipe(parsed, originalDish);
+        } catch (e) {
+          console.log('Failed to parse JSON from code fence:', e.message);
+        }
+      }
+
+      // Method 2: Try to find any JSON object in the response
+      jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          // Clean up the JSON string before parsing - remove 'g' suffix from numbers
+          let cleanedJson = jsonMatch[0].replace(/:\s*"?(\d+(?:\.\d+)?)\s*g"?/g, ': $1');
+          const parsed = JSON.parse(cleanedJson);
+          return this.formatParsedRecipe(parsed, originalDish);
+        } catch (e) {
+          console.log('Failed to parse JSON object:', e.message);
+          // Try without cleaning
+          try {
+            const parsed = JSON.parse(jsonMatch[0]);
+            return this.formatParsedRecipe(parsed, originalDish);
+          } catch (e2) {
+            console.log('Failed to parse original JSON too:', e2.message);
+          }
+        }
+      }
+
+      // Method 3: Try multiple JSON objects and pick the best one
       const jsonMatches = aiResponse.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
       if (jsonMatches && jsonMatches.length > 0) {
-        // Try to parse the last (usually most complete) JSON object
-        let parsed = null;
         for (let i = jsonMatches.length - 1; i >= 0; i--) {
           try {
-            parsed = JSON.parse(jsonMatches[i]);
-            if (parsed.name || parsed.ingredients) {
-              break; // Found a valid recipe object
+            const parsed = JSON.parse(jsonMatches[i]);
+            if (parsed.name && parsed.ingredients && Array.isArray(parsed.ingredients)) {
+              return this.formatParsedRecipe(parsed, originalDish);
             }
           } catch (e) {
             continue;
           }
         }
-        
-        if (parsed) {
-          return {
-            name: parsed.name || `Vegan ${originalDish.name}`,
-            description: parsed.description || '',
-            ingredients: parsed.ingredients || [],
-            instructions: parsed.instructions || [],
-            prepTime: parsed.prepTime || 30,
-            cookTime: parsed.cookTime || 30,
-            servings: parsed.servings || 4,
-            difficulty: parsed.difficulty || 'medium',
-            nutritionalInfo: parsed.nutritionalInfo || {},
-            tips: parsed.tips || '',
-            isVegan: true,
-            generatedByAI: true,
-            aiPrompt: this.createVeganAlternativePrompt(originalDish),
-            source: 'ai-generated',
-            cuisine: originalDish.cuisine || 'International'
-          };
-        }
       }
       
-      // Fallback: return a basic structure if JSON parsing fails
-      return {
-        name: `Vegan ${originalDish.name}`,
-        description: aiResponse,
-        ingredients: [],
-        instructions: [aiResponse],
-        prepTime: 30,
-        cookTime: 30,
-        servings: 4,
-        difficulty: 'medium',
-        isVegan: true,
-        generatedByAI: true,
-        source: 'ai-generated'
-      };
+      // Fallback: Parse manually if JSON parsing completely fails
+      console.log('All JSON parsing methods failed, using fallback');
+      return this.manualParseFallback(aiResponse, originalDish);
     } catch (error) {
       console.error('Error parsing AI response:', error);
       throw new Error('Failed to parse vegan alternative response');
     }
+  }
+
+  /**
+   * Format a successfully parsed recipe object
+   */
+  formatParsedRecipe(parsed, originalDish) {
+    // Clean up nutritional info - remove 'g' suffix if present
+    const nutritionalInfo = {};
+    if (parsed.nutritionalInfo) {
+      Object.keys(parsed.nutritionalInfo).forEach(key => {
+        const value = parsed.nutritionalInfo[key];
+        if (typeof value === 'string') {
+          nutritionalInfo[key] = parseInt(value.replace(/[^\d]/g, '')) || 0;
+        } else {
+          nutritionalInfo[key] = value;
+        }
+      });
+    }
+
+    return {
+      name: parsed.name || `Vegan ${originalDish.name}`,
+      description: parsed.description || 'A delicious vegan alternative',
+      ingredients: Array.isArray(parsed.ingredients) ? parsed.ingredients : [],
+      instructions: Array.isArray(parsed.instructions) ? parsed.instructions : [],
+      prepTime: parseInt(parsed.prepTime) || 30,
+      cookTime: parseInt(parsed.cookTime) || 30,
+      servings: parseInt(parsed.servings) || 4,
+      difficulty: parsed.difficulty || 'medium',
+      nutritionalInfo: nutritionalInfo,
+      tags: parsed.tags || ['vegan', 'healthy'],
+      isVegan: true,
+      generatedByAI: true,
+      source: 'ai-generated',
+      cuisine: originalDish.cuisine || parsed.cuisine || 'International'
+    };
+  }
+
+  /**
+   * Manual parsing fallback when JSON parsing fails
+   */
+  manualParseFallback(aiResponse, originalDish) {
+    return {
+      name: `Vegan ${originalDish.name}`,
+      description: 'A delicious vegan alternative. Please see instructions for full details.',
+      ingredients: [],
+      instructions: [aiResponse],
+      prepTime: 30,
+      cookTime: 30,
+      servings: 4,
+      difficulty: 'medium',
+      nutritionalInfo: {},
+      isVegan: true,
+      generatedByAI: true,
+      source: 'ai-generated',
+      cuisine: originalDish.cuisine || 'International'
+    };
   }
 
   /**

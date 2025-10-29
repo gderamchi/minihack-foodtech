@@ -48,7 +48,15 @@ export const storesAPI = {
   create: (data) => api.post('/stores', data),
   update: (id, data) => api.put(`/stores/${id}`, data),
   delete: (id) => api.delete(`/stores/${id}`),
-  findNearby: (params) => api.get('/stores/nearby/search', { params }),
+  findNearby: (params) => {
+    // Add default pagination params
+    const paginatedParams = {
+      limit: 50,
+      page: 1,
+      ...params
+    };
+    return api.get('/stores/nearby', { params: paginatedParams });
+  },
   findWithIngredients: (data) => api.post('/stores/find-with-ingredients', data),
   getRecommendationsForDish: (data) => api.post('/stores/recommendations-for-dish', data),
   addRating: (id, data) => api.post(`/stores/${id}/ratings`, data),

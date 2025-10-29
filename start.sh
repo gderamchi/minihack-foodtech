@@ -1,4 +1,4 @@
-sk-daEnTPqCdIvh5yqR4u0wDg#!/bin/bash
+#!/bin/bash
 
 # Vegan Diet App - Quick Start Script
 # This script helps you start both backend and frontend servers

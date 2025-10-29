@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Store = require('../models/Store');
 const locationService = require('../services/locationService');
+const osmStoreService = require('../services/osmStoreService');
+const ingredientMatchingService = require('../services/ingredientMatchingService');
 const { auth, optionalAuth } = require('../middleware/auth');
 
 // Get all stores
@@ -48,10 +50,17 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Find nearby stores (must be before /:id route)
+// Find nearby stores using OpenStreetMap (must be before /:id route)
 router.get('/nearby', async (req, res) => {
   try {
-    const { longitude, latitude, maxDistance = 5000 } = req.query;
+    const { 
+      longitude, 
+      latitude, 
+      maxDistance = 5000, 
+      useOSM = 'true',
+      limit = 50,
+      page = 1
+    } = req.query;
 
     if (!longitude || !latitude) {
       return res.status(400).json({ 
@@ -59,14 +68,49 @@ router.get('/nearby', async (req, res) => {
       });
     }
 
-    const stores = await locationService.findNearbyStores(
-      parseFloat(longitude),
-      parseFloat(latitude),
-      parseInt(maxDistance)
-    );
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    const limitNum = Math.min(parseInt(limit), 100); // Max 100 stores per request
+    const pageNum = parseInt(page);
 
-    res.json(stores);
+    // Use OpenStreetMap for real-time store data
+    if (useOSM === 'true') {
+      console.log(`Fetching stores from OSM near ${lat}, ${lon} within ${maxDistance}m (limit: ${limitNum}, page: ${pageNum})`);
+      const allStores = await osmStoreService.findNearbyStores(lat, lon, parseInt(maxDistance));
+      
+      // Implement pagination
+      const startIndex = (pageNum - 1) * limitNum;
+      const endIndex = startIndex + limitNum;
+      const paginatedStores = allStores.slice(startIndex, endIndex);
+      
+      console.log(`Found ${allStores.length} total stores, returning ${paginatedStores.length} for page ${pageNum}`);
+      
+      return res.json({
+        stores: paginatedStores,
+        pagination: {
+          total: allStores.length,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(allStores.length / limitNum),
+          hasMore: endIndex < allStores.length
+        }
+      });
+    }
+
+    // Fallback to database stores
+    const stores = await locationService.findNearbyStores(lon, lat, parseInt(maxDistance));
+    res.json({
+      stores: stores.slice(0, limitNum),
+      pagination: {
+        total: stores.length,
+        page: 1,
+        limit: limitNum,
+        totalPages: Math.ceil(stores.length / limitNum),
+        hasMore: stores.length > limitNum
+      }
+    });
   } catch (error) {
+    console.error('Error fetching nearby stores:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -116,10 +160,10 @@ router.post('/find-with-ingredients', async (req, res) => {
   }
 });
 
-// Get store recommendations for a dish
+// Get store recommendations for a dish with intelligent matching
 router.post('/recommendations-for-dish', async (req, res) => {
   try {
-    const { dishId, longitude, latitude } = req.body;
+    const { dishId, longitude, latitude, maxDistance = 5000 } = req.body;
 
     if (!dishId) {
       return res.status(400).json({ error: 'Dish ID is required' });
@@ -138,14 +182,36 @@ router.post('/recommendations-for-dish', async (req, res) => {
       return res.status(404).json({ error: 'Dish not found' });
     }
 
-    const recommendations = await locationService.getStoreRecommendationsForDish(
-      dish,
-      parseFloat(longitude),
-      parseFloat(latitude)
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+
+    // Get nearby stores from OSM
+    console.log(`Finding stores for dish: ${dish.name}`);
+    const osmStores = await osmStoreService.findNearbyStores(lat, lon, parseInt(maxDistance));
+    
+    // Use AI to match ingredients to stores
+    const ingredients = dish.ingredients.map(ing => ({
+      name: ing.name,
+      quantity: ing.quantity
+    }));
+    
+    console.log(`Analyzing ${ingredients.length} ingredients for ${osmStores.length} stores`);
+    const rankedStores = await ingredientMatchingService.analyzeIngredientsForStores(
+      ingredients,
+      osmStores
     );
 
-    res.json(recommendations);
+    res.json({
+      dish: {
+        _id: dish._id,
+        name: dish.name,
+        ingredients: ingredients
+      },
+      stores: rankedStores.slice(0, 10), // Return top 10 stores
+      totalStoresFound: osmStores.length
+    });
   } catch (error) {
+    console.error('Error getting store recommendations:', error);
     res.status(500).json({ error: error.message });
   }
 });
