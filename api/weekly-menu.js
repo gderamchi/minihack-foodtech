@@ -80,8 +80,11 @@ async function handleCurrent(req, res, admin) {
   }
 
   const currentMenu = await weeklyMenusCollection
-    .findOne({ userId: firebaseUid })
-    .sort({ createdAt: -1 });
+    .find({ userId: firebaseUid })
+    .sort({ createdAt: -1 })
+    .limit(1)
+    .toArray()
+    .then(menus => menus[0]);
 
   if (!currentMenu) {
     return res.status(404).json({ error: 'No weekly menu found' });
