@@ -4,15 +4,26 @@ const { MongoClient, ObjectId } = require('mongodb');
 // Initialize Firebase Admin (safe for serverless - checks if already initialized)
 if (!admin.apps.length) {
   try {
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+    if (!projectId || !clientEmail || !privateKey) {
+      throw new Error('Missing Firebase Admin credentials in environment variables');
+    }
+
     admin.initializeApp({
       credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        projectId,
+        clientEmail,
+        privateKey: privateKey.replace(/\\n/g, '\n'),
       }),
     });
+    
+    console.log('Firebase Admin initialized successfully');
   } catch (error) {
-    console.error('Firebase initialization error:', error);
+    console.error('CRITICAL: Firebase initialization error:', error.message);
+    throw error; // Don't continue if Firebase fails to initialize
   }
 }
 
@@ -47,22 +58,34 @@ module.exports = async (req, res) => {
   }
 
   try {
+    // Check if Firebase Admin is initialized
+    if (!admin.apps.length) {
+      console.error('Firebase Admin not initialized');
+      return res.status(500).json({ error: 'Firebase Admin initialization failed' });
+    }
+
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await admin.auth().verifyIdToken(token);
+    
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(token);
 
-    const { firebaseUid, email, name } = req.body;
+      const { firebaseUid, email, name } = req.body;
 
-    if (!firebaseUid || !email) {
-      return res.status(400).json({ error: 'Firebase UID and email are required' });
-    }
+      if (!firebaseUid || !email) {
+        return res.status(400).json({ error: 'Firebase UID and email are required' });
+      }
 
-    if (decodedToken.uid !== firebaseUid) {
-      return res.status(403).json({ error: 'Forbidden' });
+      if (decodedToken.uid !== firebaseUid) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+    } catch (authError) {
+      console.error('Token verification error:', authError);
+      return res.status(401).json({ error: 'Invalid or expired token' });
     }
 
     const client = await connectToDatabase();

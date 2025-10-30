@@ -4,15 +4,26 @@ const { MongoClient } = require('mongodb');
 // Initialize Firebase Admin (safe for serverless - checks if already initialized)
 if (!admin.apps.length) {
   try {
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+    if (!projectId || !clientEmail || !privateKey) {
+      throw new Error('Missing Firebase Admin credentials in environment variables');
+    }
+
     admin.initializeApp({
       credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        projectId,
+        clientEmail,
+        privateKey: privateKey.replace(/\\n/g, '\n'),
       }),
     });
+    
+    console.log('Firebase Admin initialized successfully');
   } catch (error) {
-    console.error('Firebase initialization error:', error);
+    console.error('CRITICAL: Firebase initialization error:', error.message);
+    throw error;
   }
 }
 
@@ -46,13 +57,25 @@ module.exports = async (req, res) => {
   }
 
   try {
+    if (!admin.apps.length) {
+      console.error('Firebase Admin not initialized');
+      return res.status(500).json({ error: 'Firebase Admin initialization failed' });
+    }
+
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Authorization token required' });
     }
 
     const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await admin.auth().verifyIdToken(token);
+    
+    let decodedToken;
+    try {
+      decodedToken = await admin.auth().verifyIdToken(token);
+    } catch (authError) {
+      console.error('Token verification error:', authError);
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
 
     const url = new URL(req.url, `http://${req.headers.host}`);
     const firebaseUid = url.searchParams.get('firebaseUid');
