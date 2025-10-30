@@ -9,29 +9,10 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/health",
-      "dest": "/api/health.js"
-    },
-    {
-      "src": "/api/dishes/generate-vegan-alternative",
-      "dest": "/api/dishes/generate-vegan-alternative.js"
-    },
-    {
-      "src": "/api/stores/nearby",
-      "dest": "/api/stores/nearby.js"
-    },
-    {
-      "src": "/api/stores/recommendations-for-dish",
-      "dest": "/api/stores/recommendations-for-dish.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/index.html"
+      "source": "/((?!api).*)",
+      "destination": "/frontend/$1"
     }
   ]
 }
