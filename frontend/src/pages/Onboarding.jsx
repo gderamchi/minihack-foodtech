@@ -6,54 +6,24 @@ import { usersAPI } from '../services/api';
 import { toast } from 'react-toastify';
 
 const STEPS = [
-  {
-    id: 1,
-    title: 'Welcome! 🌱',
-    subtitle: "Let's personalize your vegan journey",
-    type: 'welcome'
-  },
-  {
-    id: 2,
-    title: 'Your Dietary Goals',
-    subtitle: 'What brings you to plant-based eating?',
-    type: 'goals'
-  },
-  {
-    id: 3,
-    title: 'Current Diet',
-    subtitle: 'Where are you starting from?',
-    type: 'currentDiet'
-  },
-  {
-    id: 4,
-    title: 'Dietary Restrictions',
-    subtitle: 'Any allergies or restrictions we should know about?',
-    type: 'restrictions'
-  },
-  {
-    id: 5,
-    title: 'Cooking Experience',
-    subtitle: 'How comfortable are you in the kitchen?',
-    type: 'cookingLevel'
-  },
-  {
-    id: 6,
-    title: 'Meal Preferences',
-    subtitle: 'What types of meals do you enjoy?',
-    type: 'mealPreferences'
-  },
-  {
-    id: 7,
-    title: 'Your Location',
-    subtitle: 'Help us find stores near you',
-    type: 'location'
-  },
-  {
-    id: 8,
-    title: 'All Set! 🎉',
-    subtitle: 'Your personalized meal plan is ready',
-    type: 'complete'
-  }
+  { id: 1, title: 'Welcome! 🌱', subtitle: "Let's personalize your vegan journey", type: 'welcome' },
+  { id: 2, title: 'Personal Info', subtitle: 'Tell us about yourself', type: 'personal' },
+  { id: 3, title: 'Your Household', subtitle: 'Who are you cooking for?', type: 'household' },
+  { id: 4, title: 'Dietary Goals', subtitle: 'What brings you to plant-based eating?', type: 'goals' },
+  { id: 5, title: 'Current Diet', subtitle: 'Where are you starting from?', type: 'currentDiet' },
+  { id: 6, title: 'Dietary Restrictions', subtitle: 'Any restrictions?', type: 'restrictions' },
+  { id: 7, title: 'Food Allergies', subtitle: 'What should we avoid?', type: 'allergies' },
+  { id: 8, title: 'Favorite Cuisines', subtitle: 'What flavors do you love?', type: 'cuisines' },
+  { id: 9, title: 'Ingredient Preferences', subtitle: 'Likes and dislikes', type: 'ingredients' },
+  { id: 10, title: 'Texture & Flavor', subtitle: 'How do you like your food?', type: 'textures' },
+  { id: 11, title: 'Cooking Skills', subtitle: 'Your kitchen experience', type: 'cookingLevel' },
+  { id: 12, title: 'Kitchen Equipment', subtitle: 'What tools do you have?', type: 'equipment' },
+  { id: 13, title: 'Meal Planning', subtitle: 'Your eating habits', type: 'mealPreferences' },
+  { id: 14, title: 'Health Goals', subtitle: 'What are you aiming for?', type: 'health' },
+  { id: 15, title: 'Budget & Shopping', subtitle: 'Your preferences', type: 'budget' },
+  { id: 16, title: 'Your Location', subtitle: 'Find stores near you', type: 'location' },
+  { id: 17, title: 'Additional Notes', subtitle: 'Anything else?', type: 'notes' },
+  { id: 18, title: 'All Set! 🎉', subtitle: 'Your personalized plan is ready', type: 'complete' }
 ];
 
 const DIETARY_GOALS = [
@@ -87,6 +57,55 @@ const COOKING_LEVELS = [
   { id: 'advanced', label: 'Advanced', icon: '⭐', description: 'I love cooking!' }
 ];
 
+const ALLERGIES = [
+  { id: 'peanuts', label: 'Peanuts', icon: '🥜' },
+  { id: 'tree-nuts', label: 'Tree Nuts', icon: '🌰' },
+  { id: 'soy', label: 'Soy', icon: '🫘' },
+  { id: 'wheat', label: 'Wheat/Gluten', icon: '🌾' },
+  { id: 'sesame', label: 'Sesame', icon: '🫘' },
+  { id: 'none', label: 'No Allergies', icon: '✅' }
+];
+
+const CUISINES = [
+  { id: 'italian', label: 'Italian', icon: '🇮🇹' },
+  { id: 'mexican', label: 'Mexican', icon: '🇲🇽' },
+  { id: 'asian', label: 'Asian', icon: '🍜' },
+  { id: 'indian', label: 'Indian', icon: '🇮🇳' },
+  { id: 'mediterranean', label: 'Mediterranean', icon: '🫒' },
+  { id: 'american', label: 'American', icon: '🇺🇸' },
+  { id: 'french', label: 'French', icon: '🇫🇷' },
+  { id: 'japanese', label: 'Japanese', icon: '🇯🇵' },
+  { id: 'thai', label: 'Thai', icon: '🇹🇭' },
+  { id: 'middle-eastern', label: 'Middle Eastern', icon: '🧆' }
+];
+
+const TEXTURES = [
+  { id: 'crunchy', label: 'Crunchy', icon: '🥕' },
+  { id: 'creamy', label: 'Creamy', icon: '🥑' },
+  { id: 'chewy', label: 'Chewy', icon: '🍞' },
+  { id: 'soft', label: 'Soft', icon: '🍌' },
+  { id: 'crispy', label: 'Crispy', icon: '🥔' }
+];
+
+const FLAVORS = [
+  { id: 'spicy', label: 'Spicy', icon: '🌶️' },
+  { id: 'sweet', label: 'Sweet', icon: '🍯' },
+  { id: 'savory', label: 'Savory', icon: '🧂' },
+  { id: 'sour', label: 'Sour', icon: '🍋' },
+  { id: 'umami', label: 'Umami', icon: '🍄' }
+];
+
+const EQUIPMENT = [
+  { id: 'stove', label: 'Stove/Oven', icon: '🔥' },
+  { id: 'microwave', label: 'Microwave', icon: '📻' },
+  { id: 'blender', label: 'Blender', icon: '🌀' },
+  { id: 'food-processor', label: 'Food Processor', icon: '⚙️' },
+  { id: 'air-fryer', label: 'Air Fryer', icon: '🍟' },
+  { id: 'instant-pot', label: 'Instant Pot', icon: '🍲' },
+  { id: 'slow-cooker', label: 'Slow Cooker', icon: '⏰' },
+  { id: 'rice-cooker', label: 'Rice Cooker', icon: '🍚' }
+];
+
 const MEAL_TYPES = [
   { id: 'quick', label: 'Quick Meals', icon: '⚡', description: 'Under 30 minutes' },
   { id: 'batch', label: 'Batch Cooking', icon: '🍱', description: 'Meal prep friendly' },
@@ -96,6 +115,22 @@ const MEAL_TYPES = [
   { id: 'international', label: 'International', icon: '🌍', description: 'World cuisines' }
 ];
 
+const HEALTH_GOALS = [
+  { id: 'weight-loss', label: 'Weight Loss', icon: '⚖️' },
+  { id: 'muscle-gain', label: 'Muscle Gain', icon: '💪' },
+  { id: 'heart-health', label: 'Heart Health', icon: '❤️' },
+  { id: 'energy', label: 'More Energy', icon: '⚡' },
+  { id: 'digestion', label: 'Better Digestion', icon: '🌿' },
+  { id: 'general', label: 'General Health', icon: '🏃' }
+];
+
+const HOUSEHOLD_TYPES = [
+  { id: 'single', label: 'Just Me', icon: '👤' },
+  { id: 'couple', label: 'Couple', icon: '👫' },
+  { id: 'family', label: 'Family', icon: '👨‍👩‍👧‍👦' },
+  { id: 'roommates', label: 'Roommates', icon: '🏠' }
+];
+
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -103,15 +138,50 @@ export default function Onboarding() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    // Personal
+    age: '',
+    householdSize: 1,
+    householdType: '',
+    
+    // Dietary
     goals: [],
     currentDiet: '',
     restrictions: [],
+    allergies: [],
+    
+    // Food Preferences
+    favoriteCuisines: [],
+    dislikedIngredients: '',
+    preferredIngredients: '',
+    spiceTolerance: 'medium',
+    texturePreferences: [],
+    flavorProfiles: [],
+    
+    // Cooking
     cookingLevel: '',
+    timeAvailable: 30,
+    equipment: [],
+    
+    // Meal Planning
     mealPreferences: [],
+    mealsPerDay: 3,
+    
+    // Health
+    primaryHealthGoal: '',
+    calorieTarget: 2000,
+    
+    // Budget
+    budget: 'medium',
+    shoppingFrequency: 'weekly',
+    
+    // Location
     location: {
       address: '',
       coordinates: [0, 0]
-    }
+    },
+    
+    // Notes
+    additionalNotes: ''
   });
 
   const step = STEPS[currentStep];
@@ -168,20 +238,50 @@ export default function Onboarding() {
     try {
       const token = await currentUser.getIdToken();
       
-      // Save onboarding data
+      // Save comprehensive onboarding data
       await usersAPI.saveOnboardingStep(
         token,
         currentUser.uid,
-        8,
+        18,
         {
-          preferences: {
-            dietaryGoals: formData.goals,
-            currentDiet: formData.currentDiet,
-            dietaryRestrictions: formData.restrictions,
-            cookingLevel: formData.cookingLevel,
-            mealPreferences: formData.mealPreferences
+          personal: {
+            age: formData.age,
+            householdSize: formData.householdSize,
+            householdType: formData.householdType
           },
-          location: formData.location
+          dietary: {
+            goals: formData.goals,
+            currentDiet: formData.currentDiet,
+            restrictions: formData.restrictions,
+            allergies: formData.allergies
+          },
+          foodPreferences: {
+            favoriteCuisines: formData.favoriteCuisines,
+            dislikedIngredients: formData.dislikedIngredients.split(',').map(i => i.trim()).filter(Boolean),
+            preferredIngredients: formData.preferredIngredients.split(',').map(i => i.trim()).filter(Boolean),
+            spiceTolerance: formData.spiceTolerance,
+            texturePreferences: formData.texturePreferences,
+            flavorProfiles: formData.flavorProfiles
+          },
+          cooking: {
+            skillLevel: formData.cookingLevel,
+            timeAvailable: formData.timeAvailable,
+            equipment: formData.equipment
+          },
+          mealPlanning: {
+            mealPreferences: formData.mealPreferences,
+            mealsPerDay: formData.mealsPerDay
+          },
+          health: {
+            primaryGoal: formData.primaryHealthGoal,
+            calorieTarget: formData.calorieTarget
+          },
+          budget: {
+            level: formData.budget,
+            shoppingFrequency: formData.shoppingFrequency
+          },
+          location: formData.location,
+          additionalNotes: formData.additionalNotes
         }
       );
 
@@ -203,17 +303,37 @@ export default function Onboarding() {
     switch (step.type) {
       case 'welcome':
         return true;
+      case 'personal':
+        return formData.age !== '';
+      case 'household':
+        return formData.householdType !== '';
       case 'goals':
         return formData.goals.length > 0;
       case 'currentDiet':
         return formData.currentDiet !== '';
       case 'restrictions':
         return formData.restrictions.length > 0;
+      case 'allergies':
+        return formData.allergies.length > 0;
+      case 'cuisines':
+        return formData.favoriteCuisines.length > 0;
+      case 'ingredients':
+        return true; // Optional
+      case 'textures':
+        return formData.texturePreferences.length > 0 && formData.flavorProfiles.length > 0;
       case 'cookingLevel':
         return formData.cookingLevel !== '';
+      case 'equipment':
+        return formData.equipment.length > 0;
       case 'mealPreferences':
         return formData.mealPreferences.length > 0;
+      case 'health':
+        return formData.primaryHealthGoal !== '';
+      case 'budget':
+        return true; // Optional
       case 'location':
+        return true; // Optional
+      case 'notes':
         return true; // Optional
       case 'complete':
         return true;

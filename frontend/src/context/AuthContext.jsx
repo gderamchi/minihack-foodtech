@@ -125,7 +125,7 @@ export const AuthProvider = ({ children }) => {
     signOut,
     refreshProfile,
     isAuthenticated: !!currentUser,
-    needsOnboarding: currentUser && (!userProfile || !userProfile.onboardingCompleted)
+    needsOnboarding: currentUser && (!userProfile || !userProfile.user?.onboardingCompleted)
   };
 
   return (
