@@ -1,4 +1,4 @@
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 
 const uri = process.env.MONGODB_URI;
 let cachedClient = null;
@@ -91,7 +91,9 @@ async function handleRecommendations(req, res) {
   const dishesCollection = db.collection('dishes');
   const storesCollection = db.collection('stores');
 
-  const dish = await dishesCollection.findOne({ _id: dishId });
+  // Convert dishId to ObjectId if it's a string
+  const dishObjectId = typeof dishId === 'string' ? new ObjectId(dishId) : dishId;
+  const dish = await dishesCollection.findOne({ _id: dishObjectId });
 
   if (!dish) {
     return res.status(404).json({ error: 'Dish not found' });
