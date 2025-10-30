@@ -15,19 +15,19 @@
     },
     {
       "source": "/api/weekly-menu/generate",
-      "destination": "/api/weekly-menu/generate"
+      "destination": "/api/weekly-menu-generate"
     },
     {
       "source": "/api/weekly-menu/current",
-      "destination": "/api/weekly-menu/current"
+      "destination": "/api/weekly-menu-current"
     },
     {
       "source": "/api/weekly-menu/swap-meal",
-      "destination": "/api/weekly-menu/swap-meal"
+      "destination": "/api/weekly-menu-swap-meal"
     },
     {
       "source": "/api/weekly-menu/shopping-list",
-      "destination": "/api/weekly-menu/shopping-list"
+      "destination": "/api/weekly-menu-shopping-list"
     },
     {
       "source": "/api/:path*",
