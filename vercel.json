@@ -7,37 +7,5 @@
     "api/**/*.js": {
       "maxDuration": 60
     }
-  },
-  "rewrites": [
-    {
-      "source": "/api/weekly-menu/generate",
-      "destination": "/api/weekly-menu-generate"
-    },
-    {
-      "source": "/api/weekly-menu/current",
-      "destination": "/api/weekly-menu-current"
-    },
-    {
-      "source": "/api/weekly-menu/swap-meal",
-      "destination": "/api/weekly-menu-swap-meal"
-    },
-    {
-      "source": "/api/weekly-menu/shopping-list",
-      "destination": "/api/weekly-menu-shopping-list"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+  }
 }
