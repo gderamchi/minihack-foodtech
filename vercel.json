@@ -7,5 +7,12 @@
     "api/**/*.js": {
       "maxDuration": 60
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/api/users/create-or-update", "destination": "/api/users" },
+    { "source": "/api/users/profile", "destination": "/api/users" },
+    { "source": "/api/users/update-profile", "destination": "/api/users" },
+    { "source": "/api/users/onboarding", "destination": "/api/users" },
+    { "source": "/api/users/delete-account", "destination": "/api/users" }
+  ]
 }
