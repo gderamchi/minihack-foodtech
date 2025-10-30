@@ -1,15 +1,4 @@
-const admin = require('firebase-admin');
 const { MongoClient, ObjectId } = require('mongodb');
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
-}
 
 const uri = process.env.MONGODB_URI;
 let cachedClient = null;
@@ -41,13 +30,13 @@ module.exports = async (req, res) => {
     const pathname = url.pathname;
 
     if (pathname.includes('/current')) {
-      return await handleCurrent(req, res, admin);
+      return await handleCurrent(req, res);
     } else if (pathname.includes('/generate')) {
-      return await handleGenerate(req, res, admin);
+      return await handleGenerate(req, res);
     } else if (pathname.includes('/swap-meal')) {
-      return await handleSwapMeal(req, res, admin);
+      return await handleSwapMeal(req, res);
     } else if (pathname.includes('/shopping-list')) {
-      return await handleShoppingList(req, res, admin);
+      return await handleShoppingList(req, res);
     } else {
       return res.status(404).json({ error: 'Endpoint not found' });
     }
@@ -57,7 +46,7 @@ module.exports = async (req, res) => {
   }
 };
 
-async function handleCurrent(req, res, admin) {
+async function handleCurrent(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -93,7 +82,7 @@ async function handleCurrent(req, res, admin) {
   return res.status(200).json({ menu: currentMenu });
 }
 
-async function handleGenerate(req, res, admin) {
+async function handleGenerate(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -138,7 +127,7 @@ async function handleGenerate(req, res, admin) {
   return res.status(201).json({ menu: weeklyMenu });
 }
 
-async function handleSwapMeal(req, res, admin) {
+async function handleSwapMeal(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -183,7 +172,7 @@ async function handleSwapMeal(req, res, admin) {
   return res.status(200).json({ menu: updatedMenu });
 }
 
-async function handleShoppingList(req, res, admin) {
+async function handleShoppingList(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
