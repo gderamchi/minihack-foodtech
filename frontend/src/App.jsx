@@ -20,6 +20,7 @@ import MenuDetail from './pages/MenuDetail';
 import WeeklyMenu from './pages/WeeklyMenu';
 import WeeklyMenuView from './pages/WeeklyMenuView';
 import MenuTemplates from './pages/MenuTemplates';
+import ShoppingList from './pages/ShoppingList';
 
 function Navigation() {
   const { currentUser, userProfile, signOut } = useAuth();
@@ -167,6 +168,14 @@ function App() {
                 element={
                   <ProtectedRoute requireOnboarding={true}>
                     <MenuTemplates />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/shopping-list"
+                element={
+                  <ProtectedRoute requireOnboarding={true}>
+                    <ShoppingList />
                   </ProtectedRoute>
                 }
               />

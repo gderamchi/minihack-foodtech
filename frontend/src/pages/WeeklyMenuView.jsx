@@ -35,7 +35,7 @@ export default function WeeklyMenuView() {
   const [swapModalOpen, setSwapModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [viewMode, setViewMode] = useState('week'); // 'week' or 'day'
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedDay, setSelectedDay] = useState('monday'); // Default to Monday
   
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -53,15 +53,23 @@ export default function WeeklyMenuView() {
       if (response.data) {
         setMenu(response.data);
       } else {
-        // No menu exists, prompt to generate
         toast.info('No menu found. Generate your first weekly menu!');
       }
     } catch (error) {
       console.error('Error fetching menu:', error);
+      
+      // Comprehensive error handling
       if (error.response?.status === 404) {
         toast.info('No menu found. Generate your first weekly menu!');
+      } else if (error.response?.status === 401) {
+        toast.error('Session expired. Please log in again.');
+        navigate('/login');
+      } else if (error.response?.status === 500) {
+        toast.error('Server error. Please try again later.');
+      } else if (!error.response) {
+        toast.error('Network error. Check your internet connection.');
       } else {
-        toast.error('Failed to load menu');
+        toast.error('Failed to load menu. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -118,8 +126,23 @@ export default function WeeklyMenuView() {
     }
   };
 
-  const handleViewShoppingList = () => {
-    navigate('/shopping-list');
+  const handleViewShoppingList = async () => {
+    if (!menu?._id) {
+      toast.error('No menu available');
+      return;
+    }
+    
+    try {
+      const token = await currentUser.getIdToken();
+      const response = await weeklyMenuAPI.getShoppingList(token, menu._id, currentUser.uid);
+      
+      // Store shopping list in localStorage for the shopping list page
+      localStorage.setItem('currentShoppingList', JSON.stringify(response.data));
+      navigate('/shopping-list');
+    } catch (error) {
+      console.error('Error getting shopping list:', error);
+      toast.error('Failed to generate shopping list');
+    }
   };
 
   const handleToggleFavorite = async () => {
@@ -138,15 +161,15 @@ export default function WeeklyMenuView() {
   };
 
   const getNutritionSummary = () => {
-    if (!menu?.nutritionSummary) return null;
+    if (!menu?.nutritionSummary?.daily) return null;
     
     const { daily } = menu.nutritionSummary;
     return {
-      calories: daily.calories || 0,
-      protein: daily.protein || 0,
-      carbs: daily.carbs || 0,
-      fat: daily.fat || 0,
-      fiber: daily.fiber || 0
+      calories: Math.round(daily.calories || 0),
+      protein: Math.round(daily.protein || 0),
+      carbs: Math.round(daily.carbs || 0),
+      fat: Math.round(daily.fat || 0),
+      fiber: Math.round(daily.fiber || 0)
     };
   };
 

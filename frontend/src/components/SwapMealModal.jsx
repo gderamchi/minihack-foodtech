@@ -23,11 +23,84 @@ export default function SwapMealModal({ isOpen, onClose, currentMeal, onSwapComp
   const fetchSuggestions = async () => {
     try {
       setLoading(true);
-      // TODO: Implement API to get meal suggestions based on preferences
-      // For now, generate some mock suggestions
+      
+      // Get vegan dishes from database
+      const response = await dishesAPI.getAll({
+        isVegan: true,
+        limit: 8,
+        page: 1
+      });
+      
+      if (response.data?.dishes && response.data.dishes.length > 0) {
+        // Format dishes for display
+        const formattedDishes = response.data.dishes.map(dish => ({
+          _id: dish._id,
+          name: dish.name,
+          description: dish.description || 'Delicious vegan meal',
+          prepTime: dish.prepTime || 15,
+          cookTime: dish.cookTime || 20,
+          calories: dish.nutritionalInfo?.calories || dish.calories || 400,
+          protein: dish.nutritionalInfo?.protein || dish.protein || 15,
+          image: dish.image || null
+        }));
+        
+        setSuggestions(formattedDishes);
+      } else {
+        // Fallback to mock data if no dishes in database
+        const mockSuggestions = [
+          {
+            _id: 'mock-1',
+            name: 'Quinoa Buddha Bowl',
+            description: 'Colorful bowl with quinoa, roasted vegetables, and tahini dressing',
+            prepTime: 15,
+            cookTime: 25,
+            calories: 450,
+            protein: 15,
+            image: null
+          },
+          {
+            _id: 'mock-2',
+            name: 'Lentil Curry',
+            description: 'Creamy coconut curry with red lentils and aromatic spices',
+            prepTime: 10,
+            cookTime: 30,
+            calories: 380,
+            protein: 18,
+            image: null
+          },
+          {
+            _id: 'mock-3',
+            name: 'Chickpea Pasta',
+            description: 'High-protein pasta with chickpeas, tomatoes, and fresh basil',
+            prepTime: 10,
+            cookTime: 20,
+            calories: 420,
+            protein: 20,
+            image: null
+          },
+          {
+            _id: 'mock-4',
+            name: 'Tofu Stir-Fry',
+            description: 'Crispy tofu with mixed vegetables in savory sauce',
+            prepTime: 15,
+            cookTime: 15,
+            calories: 350,
+            protein: 22,
+            image: null
+          }
+        ];
+        
+        setSuggestions(mockSuggestions);
+        toast.info('Showing sample suggestions. Add more dishes to see personalized options!');
+      }
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      toast.error('Failed to load suggestions');
+      
+      // Fallback to mock data on error
       const mockSuggestions = [
         {
-          _id: '1',
+          _id: 'mock-1',
           name: 'Quinoa Buddha Bowl',
           description: 'Colorful bowl with quinoa, roasted vegetables, and tahini dressing',
           prepTime: 15,
@@ -37,7 +110,7 @@ export default function SwapMealModal({ isOpen, onClose, currentMeal, onSwapComp
           image: null
         },
         {
-          _id: '2',
+          _id: 'mock-2',
           name: 'Lentil Curry',
           description: 'Creamy coconut curry with red lentils and aromatic spices',
           prepTime: 10,
@@ -45,33 +118,10 @@ export default function SwapMealModal({ isOpen, onClose, currentMeal, onSwapComp
           calories: 380,
           protein: 18,
           image: null
-        },
-        {
-          _id: '3',
-          name: 'Chickpea Pasta',
-          description: 'High-protein pasta with chickpeas, tomatoes, and fresh basil',
-          prepTime: 10,
-          cookTime: 20,
-          calories: 420,
-          protein: 20,
-          image: null
-        },
-        {
-          _id: '4',
-          name: 'Tofu Stir-Fry',
-          description: 'Crispy tofu with mixed vegetables in savory sauce',
-          prepTime: 15,
-          cookTime: 15,
-          calories: 350,
-          protein: 22,
-          image: null
         }
       ];
       
       setSuggestions(mockSuggestions);
-    } catch (error) {
-      console.error('Error fetching suggestions:', error);
-      toast.error('Failed to load suggestions');
     } finally {
       setLoading(false);
     }
@@ -97,13 +147,36 @@ export default function SwapMealModal({ isOpen, onClose, currentMeal, onSwapComp
       setLoading(true);
       toast.info('Generating new suggestions...');
       
-      // TODO: Call API to generate new AI suggestions
-      await fetchSuggestions();
+      // Fetch different set of dishes with random page
+      const randomPage = Math.floor(Math.random() * 3) + 1;
+      const response = await dishesAPI.getAll({
+        isVegan: true,
+        limit: 8,
+        page: randomPage
+      });
       
-      toast.success('New suggestions generated!');
+      if (response.data?.dishes && response.data.dishes.length > 0) {
+        const formattedDishes = response.data.dishes.map(dish => ({
+          _id: dish._id,
+          name: dish.name,
+          description: dish.description || 'Delicious vegan meal',
+          prepTime: dish.prepTime || 15,
+          cookTime: dish.cookTime || 20,
+          calories: dish.nutritionalInfo?.calories || dish.calories || 400,
+          protein: dish.nutritionalInfo?.protein || dish.protein || 15,
+          image: dish.image || null
+        }));
+        
+        setSuggestions(formattedDishes);
+        toast.success('New suggestions loaded!');
+      } else {
+        await fetchSuggestions();
+        toast.success('Refreshed suggestions!');
+      }
     } catch (error) {
       console.error('Error generating suggestions:', error);
       toast.error('Failed to generate new suggestions');
+      await fetchSuggestions(); // Fallback to default fetch
     } finally {
       setLoading(false);
     }
