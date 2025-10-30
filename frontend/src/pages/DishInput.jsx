@@ -4,10 +4,12 @@ import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import { FaUtensils, FaLeaf, FaClock, FaUsers, FaHeart, FaShare, FaStore } from 'react-icons/fa';
 import { dishesAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import EnhancedLoading from '../components/EnhancedLoading';
 
 function DishInput() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [formData, setFormData] = useState({
     dishName: '',
     description: '',
@@ -43,10 +45,11 @@ function DishInput() {
         .map(ing => ({ name: ing }));
 
       const response = await dishesAPI.generateVeganAlternative({
-        name: formData.dishName, // Changed from dishName to name
+        name: formData.dishName,
         description: formData.description,
         ingredients: ingredientsArray,
-        cuisine: formData.cuisine
+        cuisine: formData.cuisine,
+        firebaseUid: currentUser?.uid // Send user ID for personalization
       });
 
       setResult(response.data);
