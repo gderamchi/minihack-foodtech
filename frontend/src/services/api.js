@@ -71,7 +71,8 @@ export const storesAPI = {
 export const usersAPI = {
   register: (data) => api.post('/users/register', data),
   login: (data) => api.post('/users/login', data),
-  getProfile: (token) => api.get('/users/profile', {
+  getProfile: (token, firebaseUid) => api.get('/users/profile', {
+    params: { firebaseUid },
     headers: { Authorization: `Bearer ${token}` }
   }),
   updateProfile: (token, data) => api.put('/users/profile', data, {
@@ -83,10 +84,17 @@ export const usersAPI = {
   saveDish: (dishId) => api.post(`/users/me/saved-dishes/${dishId}`),
   unsaveDish: (dishId) => api.delete(`/users/me/saved-dishes/${dishId}`),
   changePassword: (data) => api.put('/users/me/password', data),
-  saveOnboardingStep: (token, step, data) => api.post('/users/onboarding', { step, data }, {
+  saveOnboardingStep: (token, firebaseUid, step, data) => api.post('/users/onboarding', { 
+    firebaseUid, 
+    step, 
+    data 
+  }, {
     headers: { Authorization: `Bearer ${token}` }
   }),
-  completeOnboarding: (token) => api.post('/users/onboarding/complete', {}, {
+  completeOnboarding: (token, firebaseUid) => api.post('/users/onboarding', { 
+    firebaseUid,
+    complete: true 
+  }, {
     headers: { Authorization: `Bearer ${token}` }
   }),
   createOrUpdate: (userData, token) => api.post('/users/create-or-update', userData, {

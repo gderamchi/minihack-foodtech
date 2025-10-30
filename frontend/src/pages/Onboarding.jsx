@@ -168,16 +168,25 @@ export default function Onboarding() {
     try {
       const token = await currentUser.getIdToken();
       
-      await usersAPI.completeOnboarding({
-        preferences: {
-          dietaryGoals: formData.goals,
-          currentDiet: formData.currentDiet,
-          dietaryRestrictions: formData.restrictions,
-          cookingLevel: formData.cookingLevel,
-          mealPreferences: formData.mealPreferences
-        },
-        location: formData.location
-      }, token);
+      // Save onboarding data
+      await usersAPI.saveOnboardingStep(
+        token,
+        currentUser.uid,
+        8,
+        {
+          preferences: {
+            dietaryGoals: formData.goals,
+            currentDiet: formData.currentDiet,
+            dietaryRestrictions: formData.restrictions,
+            cookingLevel: formData.cookingLevel,
+            mealPreferences: formData.mealPreferences
+          },
+          location: formData.location
+        }
+      );
+
+      // Mark onboarding as complete
+      await usersAPI.completeOnboarding(token, currentUser.uid);
 
       await refreshProfile();
       toast.success('Welcome to your vegan journey! 🌱');

@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
           }, token);
 
           // Fetch user profile from backend
-          const profile = await usersAPI.getProfile(token);
+          const profile = await usersAPI.getProfile(token, user.uid);
           setUserProfile(profile.data);
         } catch (error) {
           console.error('Error syncing user:', error);
@@ -107,7 +107,7 @@ export const AuthProvider = ({ children }) => {
     if (currentUser) {
       try {
         const token = await currentUser.getIdToken();
-        const profile = await usersAPI.getProfile(token);
+        const profile = await usersAPI.getProfile(token, currentUser.uid);
         setUserProfile(profile.data);
       } catch (error) {
         console.error('Error refreshing profile:', error);

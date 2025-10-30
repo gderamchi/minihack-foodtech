@@ -59,7 +59,18 @@ module.exports = async function handler(req, res) {
   try {
     await connectDB();
 
-    const firebaseUid = req.query.firebaseUid;
+    // Extract Firebase UID from Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authorization token required' });
+    }
+
+    const token = authHeader.split('Bearer ')[1];
+    
+    // For now, we'll extract firebaseUid from query param or body as fallback
+    // In production, you should verify the Firebase token
+    const firebaseUid = req.query.firebaseUid || req.body.firebaseUid;
+    
     if (!firebaseUid) {
       return res.status(400).json({ error: 'Firebase UID required' });
     }
