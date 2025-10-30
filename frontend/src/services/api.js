@@ -71,14 +71,55 @@ export const storesAPI = {
 export const usersAPI = {
   register: (data) => api.post('/users/register', data),
   login: (data) => api.post('/users/login', data),
-  getProfile: () => api.get('/users/me'),
-  updateProfile: (data) => api.put('/users/me', data),
+  getProfile: (token) => api.get('/users/profile', {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  updateProfile: (token, data) => api.put('/users/profile', data, {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
   updateLocation: (data) => api.put('/users/me/location', data),
   saveMenu: (menuId) => api.post(`/users/me/saved-menus/${menuId}`),
   unsaveMenu: (menuId) => api.delete(`/users/me/saved-menus/${menuId}`),
   saveDish: (dishId) => api.post(`/users/me/saved-dishes/${dishId}`),
   unsaveDish: (dishId) => api.delete(`/users/me/saved-dishes/${dishId}`),
   changePassword: (data) => api.put('/users/me/password', data),
+  saveOnboardingStep: (token, step, data) => api.post('/users/onboarding', { step, data }, {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  completeOnboarding: (token) => api.post('/users/onboarding/complete', {}, {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  createOrUpdate: (token, userData) => api.post('/users/create-or-update', userData, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+};
+
+// Weekly Menu API
+export const weeklyMenuAPI = {
+  generate: (token, preferences) => api.post('/weekly-menu/generate', preferences, {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  getCurrent: (token) => api.get('/weekly-menu/current', {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  getById: (token, id) => api.get(`/weekly-menu/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  update: (token, id, menuData) => api.put(`/weekly-menu/${id}`, menuData, {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  swapMeal: (token, id, swapData) => api.post(`/weekly-menu/${id}/swap-meal`, swapData, {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  regenerate: (token, id, options) => api.post(`/weekly-menu/${id}/regenerate`, options, {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  saveFavorite: (token, id, name) => api.post(`/weekly-menu/${id}/favorite`, { name }, {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  updateShoppingList: (token, id, shoppingList) => api.put(`/weekly-menu/${id}/shopping-list`, shoppingList, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
 };
 
 export default api;
