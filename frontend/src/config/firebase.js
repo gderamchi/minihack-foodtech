@@ -55,5 +55,5 @@ export const logOut = async () => {
   }
 };
 
-export { auth };
+export { auth, googleProvider };
 export default app;

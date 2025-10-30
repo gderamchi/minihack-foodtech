@@ -3,13 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaGoogle, FaEnvelope, FaLock, FaLeaf } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import { signInWithGoogle, signInWithEmail } from '../config/firebase';
-import { usersAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 function Login() {
   const navigate = useNavigate();
-  const { refreshProfile } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -19,20 +17,9 @@ function Login() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const user = await signInWithGoogle();
-      
-      // Create or update user in MongoDB
-      const token = await user.getIdToken();
-      await usersAPI.createOrUpdate(token, {
-        firebaseUid: user.uid,
-        email: user.email,
-        name: user.displayName,
-        photoURL: user.photoURL
-      });
-
-      await refreshProfile();
+      await signInWithGoogle();
       toast.success('Welcome back!');
-      navigate('/');
+      navigate('/onboarding');
     } catch (error) {
       console.error('Google sign-in error:', error);
       toast.error('Failed to sign in with Google');
@@ -46,18 +33,9 @@ function Login() {
     setLoading(true);
 
     try {
-      const user = await signInWithEmail(formData.email, formData.password);
-      
-      const token = await user.getIdToken();
-      await usersAPI.createOrUpdate(token, {
-        firebaseUid: user.uid,
-        email: user.email,
-        name: user.displayName || formData.email.split('@')[0]
-      });
-
-      await refreshProfile();
+      await signIn(formData.email, formData.password);
       toast.success('Welcome back!');
-      navigate('/');
+      navigate('/onboarding');
     } catch (error) {
       console.error('Email sign-in error:', error);
       if (error.code === 'auth/user-not-found') {
