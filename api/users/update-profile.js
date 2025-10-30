@@ -1,18 +1,51 @@
-const connectDB = require('../../backend/src/config/database');
-const User = require('../../backend/src/models/User');
+const mongoose = require('mongoose');
+
+// MongoDB connection
+let cachedDb = null;
+
+async function connectDB() {
+  if (cachedDb) {
+    return cachedDb;
+  }
+
+  const conn = await mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  cachedDb = conn;
+  return conn;
+}
+
+// User Schema (inline for serverless)
+const userSchema = new mongoose.Schema({
+  firebaseUid: { type: String, unique: true, sparse: true },
+  email: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  password: String,
+  onboardingCompleted: { type: Boolean, default: false },
+  onboardingStep: { type: Number, default: 0 },
+  profile: mongoose.Schema.Types.Mixed
+}, { timestamps: true, minimize: false });
+
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 module.exports = async function handler(req, res) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'PUT, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'PUT') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     await connectDB();
-
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authorization token required' });
-    }
 
     const { firebaseUid, profile } = req.body;
 
@@ -29,6 +62,7 @@ module.exports = async function handler(req, res) {
     // Update profile
     if (profile) {
       user.profile = { ...user.profile, ...profile };
+      user.markModified('profile');
     }
 
     await user.save();
@@ -47,6 +81,9 @@ module.exports = async function handler(req, res) {
     });
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ error: 'Failed to update profile' });
+    res.status(500).json({ 
+      error: 'Failed to update profile',
+      details: error.message 
+    });
   }
 };
