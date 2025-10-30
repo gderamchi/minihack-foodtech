@@ -37,17 +37,18 @@ function DishInput() {
       const ingredientsArray = formData.ingredients
         .split(',')
         .map(ing => ing.trim())
-        .filter(ing => ing);
+        .filter(ing => ing)
+        .map(ing => ({ name: ing }));
 
       const response = await dishesAPI.generateVeganAlternative({
-        dishName: formData.dishName,
+        name: formData.dishName, // Changed from dishName to name
         description: formData.description,
         ingredients: ingredientsArray,
         cuisine: formData.cuisine
       });
 
       setResult(response.data);
-      toast.success(response.data.message);
+      toast.success('Vegan alternative generated successfully!');
     } catch (error) {
       console.error('Error generating vegan alternative:', error);
       toast.error(error.response?.data?.error || 'Failed to generate vegan alternative');
@@ -57,8 +58,8 @@ function DishInput() {
   };
 
   const handleViewStores = () => {
-    if (result && result.dish) {
-      navigate('/stores', { state: { dish: result.dish } });
+    if (result && result.veganDish) {
+      navigate('/stores', { state: { dish: result.veganDish } });
     }
   };
 
@@ -158,40 +159,40 @@ function DishInput() {
       </div>
 
       {/* Result Display */}
-      {result && result.dish && (
+      {result && result.veganDish && (
         <div className="bg-white rounded-xl shadow-lg p-8 animate-fade-in">
           <div className="flex items-center justify-between mb-6">
             <div>
               <div className="flex items-center space-x-2 text-sm text-primary-600 mb-2">
                 <FaLeaf />
                 <span className="font-semibold">
-                  {result.source === 'database' ? 'From Our Database' : 'AI Generated'}
+                  {result.veganDish.source === 'database' ? 'From Our Database' : 'AI Generated'}
                 </span>
               </div>
               <h2 className="text-3xl font-bold text-gray-900">
-                {result.dish.name}
+                {result.veganDish.name}
               </h2>
             </div>
             <div className="flex space-x-2">
               <div className="flex items-center space-x-1 text-gray-600">
                 <FaClock />
-                <span>{result.dish.prepTime + result.dish.cookTime} min</span>
+                <span>{result.veganDish.prepTime + result.veganDish.cookTime} min</span>
               </div>
               <div className="flex items-center space-x-1 text-gray-600">
                 <FaUsers />
-                <span>{result.dish.servings} servings</span>
+                <span>{result.veganDish.servings} servings</span>
               </div>
             </div>
           </div>
 
-          <p className="text-gray-700 mb-6">{result.dish.description}</p>
+          <p className="text-gray-700 mb-6">{result.veganDish.description}</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
             {/* Ingredients */}
             <div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Ingredients</h3>
               <ul className="space-y-2">
-                {result.dish.ingredients.map((ing, index) => (
+                {result.veganDish.ingredients.map((ing, index) => (
                   <li key={index} className="flex items-start space-x-2">
                     <span className="text-primary-600 mt-1">•</span>
                     <span className="text-gray-700">
@@ -204,40 +205,40 @@ function DishInput() {
             </div>
 
             {/* Nutritional Info */}
-            {result.dish.nutritionalInfo && (
+            {result.veganDish.nutritionalInfo && (
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">
                   Nutritional Info (per serving)
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {result.dish.nutritionalInfo.calories && (
+                  {result.veganDish.nutritionalInfo.calories && (
                     <div className="bg-primary-50 p-3 rounded-lg">
                       <div className="text-2xl font-bold text-primary-600">
-                        {result.dish.nutritionalInfo.calories}
+                        {result.veganDish.nutritionalInfo.calories}
                       </div>
                       <div className="text-sm text-gray-600">Calories</div>
                     </div>
                   )}
-                  {result.dish.nutritionalInfo.protein && (
+                  {result.veganDish.nutritionalInfo.protein && (
                     <div className="bg-primary-50 p-3 rounded-lg">
                       <div className="text-2xl font-bold text-primary-600">
-                        {result.dish.nutritionalInfo.protein}g
+                        {result.veganDish.nutritionalInfo.protein}g
                       </div>
                       <div className="text-sm text-gray-600">Protein</div>
                     </div>
                   )}
-                  {result.dish.nutritionalInfo.carbs && (
+                  {result.veganDish.nutritionalInfo.carbs && (
                     <div className="bg-primary-50 p-3 rounded-lg">
                       <div className="text-2xl font-bold text-primary-600">
-                        {result.dish.nutritionalInfo.carbs}g
+                        {result.veganDish.nutritionalInfo.carbs}g
                       </div>
                       <div className="text-sm text-gray-600">Carbs</div>
                     </div>
                   )}
-                  {result.dish.nutritionalInfo.fat && (
+                  {result.veganDish.nutritionalInfo.fat && (
                     <div className="bg-primary-50 p-3 rounded-lg">
                       <div className="text-2xl font-bold text-primary-600">
-                        {result.dish.nutritionalInfo.fat}g
+                        {result.veganDish.nutritionalInfo.fat}g
                       </div>
                       <div className="text-sm text-gray-600">Fat</div>
                     </div>
@@ -251,7 +252,7 @@ function DishInput() {
           <div className="mb-6">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Instructions</h3>
             <ol className="space-y-3">
-              {result.dish.instructions.map((instruction, index) => (
+              {result.veganDish.instructions.map((instruction, index) => (
                 <li key={index} className="flex space-x-3">
                   <span className="flex-shrink-0 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center font-semibold">
                     {index + 1}
@@ -263,15 +264,15 @@ function DishInput() {
           </div>
 
           {/* Tips */}
-          {result.dish.tips && (
+          {result.veganDish.tips && (
             <div className="bg-primary-50 p-4 rounded-lg mb-6">
               <h4 className="font-semibold text-gray-900 mb-2">💡 Tips</h4>
-              <p className="text-gray-700">{result.dish.tips}</p>
+              <p className="text-gray-700">{result.veganDish.tips}</p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex space-x-4">
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
             <button
               onClick={handleViewStores}
               className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition"
@@ -279,10 +280,18 @@ function DishInput() {
               Find Ingredients at Nearby Stores
             </button>
             <button
-              onClick={() => navigate(`/dishes/${result.dish._id}`)}
+              onClick={() => {
+                setFormData({
+                  dishName: '',
+                  description: '',
+                  ingredients: '',
+                  cuisine: ''
+                });
+                setResult(null);
+              }}
               className="flex-1 bg-white text-primary-600 border-2 border-primary-600 py-3 rounded-lg font-semibold hover:bg-primary-50 transition"
             >
-              View Full Details
+              Try Another Dish
             </button>
           </div>
         </div>
