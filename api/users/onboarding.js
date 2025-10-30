@@ -1,6 +1,20 @@
-const { getFirebaseAdmin } = require('../_lib/firebase-admin');
+const admin = require('firebase-admin');
 const { MongoClient, ObjectId } = require('mongodb');
 
+// Initialize Firebase Admin (safe for serverless - checks if already initialized)
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+  }
+}
 
 const uri = process.env.MONGODB_URI;
 let cachedClient = null;
@@ -38,7 +52,7 @@ module.exports = async (req, res) => {
     }
 
     const token = authHeader.split('Bearer ')[1];
-    const admin = getFirebaseAdmin();
+    
     const decodedToken = await admin.auth().verifyIdToken(token);
 
     const { firebaseUid, step, data, complete } = req.body;
