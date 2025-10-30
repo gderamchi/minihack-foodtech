@@ -7,5 +7,13 @@
     "api/**/*.js": {
       "maxDuration": 60
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/api/stores/nearby", "destination": "/api/stores" },
+    { "source": "/api/stores/recommendations-for-dish", "destination": "/api/stores" },
+    { "source": "/api/weekly-menu/current", "destination": "/api/weekly-menu" },
+    { "source": "/api/weekly-menu/generate", "destination": "/api/weekly-menu" },
+    { "source": "/api/weekly-menu/swap-meal", "destination": "/api/weekly-menu" },
+    { "source": "/api/weekly-menu/shopping-list", "destination": "/api/weekly-menu" }
+  ]
 }
