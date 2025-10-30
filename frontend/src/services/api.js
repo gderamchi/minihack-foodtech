@@ -1,8 +1,11 @@
 import axios from 'axios';
 
 // Use relative URL in production (same domain), localhost in development
+// In production, VITE_API_URL should not be set, so it defaults to '/api'
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
   (import.meta.env.PROD ? '/api' : 'http://localhost:5001/api');
+
+console.log('API Base URL:', API_BASE_URL); // Debug log to verify in production
 
 const api = axios.create({
   baseURL: API_BASE_URL,
