@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaUtensils, FaSpinner, FaLeaf, FaClock, FaUsers } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { FaUtensils, FaLeaf, FaClock, FaUsers, FaHeart, FaShare, FaStore } from 'react-icons/fa';
 import { dishesAPI } from '../services/api';
+import EnhancedLoading from '../components/EnhancedLoading';
 
 function DishInput() {
   const navigate = useNavigate();
@@ -138,49 +140,66 @@ function DishInput() {
             />
           </div>
 
-          <button
+          <motion.button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary-600 text-white py-4 rounded-lg font-semibold hover:bg-primary-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            whileHover={{ scale: loading ? 1 : 1.02 }}
+            whileTap={{ scale: loading ? 1 : 0.98 }}
+            className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white py-4 rounded-lg font-bold hover:from-green-700 hover:to-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-lg"
           >
-            {loading ? (
-              <>
-                <FaSpinner className="animate-spin" />
-                <span>Generating Vegan Alternative...</span>
-              </>
-            ) : (
-              <>
-                <FaLeaf />
-                <span>Get Vegan Alternative</span>
-              </>
-            )}
-          </button>
+            <FaLeaf />
+            <span>Generate Vegan Alternative</span>
+          </motion.button>
         </form>
       </div>
 
+      {/* Enhanced Loading */}
+      <EnhancedLoading isLoading={loading} />
+
       {/* Result Display */}
       {result && result.veganDish && (
-        <div className="bg-white rounded-xl shadow-lg p-8 animate-fade-in">
-          <div className="flex items-center justify-between mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="bg-white rounded-xl shadow-2xl p-8 border-2 border-green-200"
+        >
+          {/* Success Badge */}
+          <div className="flex justify-center mb-6">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+              className="bg-green-100 text-green-800 px-6 py-3 rounded-full font-bold text-lg flex items-center gap-2"
+            >
+              <span className="text-2xl">🎉</span>
+              <span>Vegan Recipe Generated!</span>
+            </motion.div>
+          </div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
             <div>
-              <div className="flex items-center space-x-2 text-sm text-primary-600 mb-2">
+              <div className="flex items-center space-x-2 text-sm text-green-600 mb-2">
                 <FaLeaf />
                 <span className="font-semibold">
-                  {result.veganDish.source === 'database' ? 'From Our Database' : 'AI Generated'}
+                  {result.veganDish.source === 'database' ? '✨ From Our Database' : '🤖 AI Generated'}
                 </span>
               </div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
                 {result.veganDish.name}
               </h2>
             </div>
-            <div className="flex space-x-2">
-              <div className="flex items-center space-x-1 text-gray-600">
-                <FaClock />
-                <span>{result.veganDish.prepTime + result.veganDish.cookTime} min</span>
+            <div className="flex flex-wrap gap-3">
+              <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-lg">
+                <FaClock className="text-blue-600" />
+                <span className="font-semibold text-gray-700">
+                  {result.veganDish.prepTime + result.veganDish.cookTime} min
+                </span>
               </div>
-              <div className="flex items-center space-x-1 text-gray-600">
-                <FaUsers />
-                <span>{result.veganDish.servings} servings</span>
+              <div className="flex items-center space-x-2 bg-purple-50 px-4 py-2 rounded-lg">
+                <FaUsers className="text-purple-600" />
+                <span className="font-semibold text-gray-700">
+                  {result.veganDish.servings} servings
+                </span>
               </div>
             </div>
           </div>
@@ -272,13 +291,36 @@ function DishInput() {
           )}
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-            <button
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleViewStores}
-              className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition"
+              className="bg-gradient-to-r from-green-600 to-green-500 text-white py-4 rounded-lg font-bold hover:from-green-700 hover:to-green-600 transition shadow-lg flex items-center justify-center gap-2"
             >
-              Find Ingredients at Nearby Stores
-            </button>
+              <FaStore />
+              <span>Find Ingredients</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white text-pink-600 border-2 border-pink-600 py-4 rounded-lg font-bold hover:bg-pink-50 transition flex items-center justify-center gap-2"
+            >
+              <FaHeart />
+              <span>Save Recipe</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white text-blue-600 border-2 border-blue-600 py-4 rounded-lg font-bold hover:bg-blue-50 transition flex items-center justify-center gap-2"
+            >
+              <FaShare />
+              <span>Share</span>
+            </motion.button>
+          </div>
+
+          {/* Try Another Dish */}
+          <div className="mt-6 text-center">
             <button
               onClick={() => {
                 setFormData({
@@ -289,12 +331,12 @@ function DishInput() {
                 });
                 setResult(null);
               }}
-              className="flex-1 bg-white text-primary-600 border-2 border-primary-600 py-3 rounded-lg font-semibold hover:bg-primary-50 transition"
+              className="text-gray-600 hover:text-gray-900 font-semibold underline"
             >
-              Try Another Dish
+              Try Another Dish →
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );
