@@ -18,6 +18,8 @@ import StoreLocator from './pages/StoreLocator';
 import DishDetail from './pages/DishDetail';
 import MenuDetail from './pages/MenuDetail';
 import WeeklyMenu from './pages/WeeklyMenu';
+import WeeklyMenuView from './pages/WeeklyMenuView';
+import MenuTemplates from './pages/MenuTemplates';
 
 function Navigation() {
   const { currentUser, userProfile, signOut } = useAuth();
@@ -156,7 +158,15 @@ function App() {
                 path="/weekly-menu"
                 element={
                   <ProtectedRoute requireOnboarding={true}>
-                    <WeeklyMenu />
+                    <WeeklyMenuView />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/menu-templates"
+                element={
+                  <ProtectedRoute requireOnboarding={true}>
+                    <MenuTemplates />
                   </ProtectedRoute>
                 }
               />

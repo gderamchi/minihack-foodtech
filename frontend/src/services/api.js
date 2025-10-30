@@ -104,12 +104,32 @@ export const usersAPI = {
 
 // Weekly Menu API
 export const weeklyMenuAPI = {
-  generate: (firebaseUid) => api.post('/weekly-menu/generate', { firebaseUid }),
-  getCurrent: (firebaseUid) => api.get('/weekly-menu/current', { params: { firebaseUid } }),
-  swapMeal: (menuId, dayIndex, mealIndex, firebaseUid) => 
-    api.post('/weekly-menu/swap-meal', { menuId, dayIndex, mealIndex, firebaseUid }),
-  getShoppingList: (menuId, firebaseUid) => 
-    api.post('/weekly-menu/shopping-list', { menuId, firebaseUid })
+  generate: (token, firebaseUid, options = {}) => api.post('/weekly-menu/generate', { 
+    firebaseUid,
+    ...options 
+  }, {
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  getCurrent: (token, firebaseUid) => api.get('/weekly-menu/current', { 
+    params: { firebaseUid },
+    headers: { Authorization: `Bearer ${token}` }
+  }),
+  swapMeal: (token, menuId, day, mealType, firebaseUid) => 
+    api.post('/weekly-menu/swap-meal', { 
+      menuId, 
+      day, 
+      mealType, 
+      firebaseUid 
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+  getShoppingList: (token, menuId, firebaseUid) => 
+    api.post('/weekly-menu/shopping-list', { 
+      menuId, 
+      firebaseUid 
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
 };
 
 export default api;
