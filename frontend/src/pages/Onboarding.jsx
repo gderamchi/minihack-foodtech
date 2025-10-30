@@ -288,7 +288,12 @@ export default function Onboarding() {
       // Mark onboarding as complete
       await usersAPI.completeOnboarding(token, currentUser.uid);
 
+      // Wait for profile to refresh and verify completion
       await refreshProfile();
+      
+      // Small delay to ensure state updates
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       toast.success('Welcome to your vegan journey! 🌱');
       navigate('/dashboard');
     } catch (error) {

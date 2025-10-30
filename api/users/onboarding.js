@@ -73,7 +73,7 @@ module.exports = async function handler(req, res) {
     // Mark onboarding as complete
     if (complete) {
       user.onboardingCompleted = true;
-      user.onboardingStep = 8;
+      user.onboardingStep = step || 18; // Use provided step or default to 18
     }
 
     await user.save();
