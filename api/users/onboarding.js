@@ -1,4 +1,4 @@
-const { getFirebaseAdmin, admin } = require('../_lib/firebase-admin');
+const { getFirebaseAdmin, admin } = require('../firebase-admin');
 const { MongoClient, ObjectId } = require('mongodb');
 
 // Initialize Firebase Admin
