@@ -45,35 +45,26 @@ module.exports = async (req, res) => {
   try {
     // Parse the URL to determine the action
     const url = new URL(req.url, `http://${req.headers.host}`);
-    const pathParts = url.pathname.split('/').filter(Boolean);
+    const pathname = url.pathname;
     
-    // Remove 'api' and 'users' from path
-    const action = pathParts[pathParts.length - 1];
-
     // Connect to database
     const client = await connectToDatabase();
     const db = client.db('vegan-diet-app');
     const usersCollection = db.collection('users');
 
-    // Route to appropriate handler
-    switch (action) {
-      case 'create-or-update':
-        return await handleCreateOrUpdate(req, res, admin, usersCollection);
-      
-      case 'profile':
-        return await handleProfile(req, res, admin, usersCollection);
-      
-      case 'update-profile':
-        return await handleUpdateProfile(req, res, admin, usersCollection);
-      
-      case 'onboarding':
-        return await handleOnboarding(req, res, admin, usersCollection);
-      
-      case 'delete-account':
-        return await handleDeleteAccount(req, res, admin, db);
-      
-      default:
-        return res.status(404).json({ error: 'Endpoint not found' });
+    // Route based on full path
+    if (pathname.includes('/create-or-update')) {
+      return await handleCreateOrUpdate(req, res, admin, usersCollection);
+    } else if (pathname.includes('/profile') && !pathname.includes('update-profile')) {
+      return await handleProfile(req, res, admin, usersCollection);
+    } else if (pathname.includes('/update-profile')) {
+      return await handleUpdateProfile(req, res, admin, usersCollection);
+    } else if (pathname.includes('/onboarding')) {
+      return await handleOnboarding(req, res, admin, usersCollection);
+    } else if (pathname.includes('/delete-account')) {
+      return await handleDeleteAccount(req, res, admin, db);
+    } else {
+      return res.status(404).json({ error: `Endpoint not found: ${pathname}` });
     }
   } catch (error) {
     console.error('Error in users API:', error);
