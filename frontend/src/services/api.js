@@ -89,7 +89,7 @@ export const usersAPI = {
   completeOnboarding: (token) => api.post('/users/onboarding/complete', {}, {
     headers: { Authorization: `Bearer ${token}` }
   }),
-  createOrUpdate: (token, userData) => api.post('/users/create-or-update', userData, {
+  createOrUpdate: (userData, token) => api.post('/users/create-or-update', userData, {
     headers: { Authorization: `Bearer ${token}` }
   })
 };
