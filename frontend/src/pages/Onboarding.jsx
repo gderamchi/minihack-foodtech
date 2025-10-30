@@ -411,6 +411,65 @@ export default function Onboarding() {
                 </div>
               )}
 
+              {step.type === 'personal' && (
+                <div className="space-y-6 max-w-md mx-auto">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Your Age</label>
+                    <input
+                      type="number"
+                      value={formData.age}
+                      onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                      placeholder="Enter your age"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {step.type === 'household' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {HOUSEHOLD_TYPES.map(type => (
+                      <motion.button
+                        key={type.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, householdType: type.id }));
+                          if (type.id === 'single') {
+                            setFormData(prev => ({ ...prev, householdSize: 1 }));
+                          }
+                        }}
+                        className={`p-6 rounded-xl border-2 transition-all ${
+                          formData.householdType === type.id
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 hover:border-green-300'
+                        }`}
+                      >
+                        <div className="text-4xl mb-2">{type.icon}</div>
+                        <p className="text-sm font-medium text-gray-900">{type.label}</p>
+                      </motion.button>
+                    ))}
+                  </div>
+                  
+                  {formData.householdType && formData.householdType !== 'single' && (
+                    <div className="max-w-md mx-auto mt-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        How many people in your household?
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={formData.householdSize}
+                        onChange={(e) => setFormData(prev => ({ ...prev, householdSize: parseInt(e.target.value) || 1 }))}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
               {step.type === 'goals' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {DIETARY_GOALS.map(goal => (
@@ -484,6 +543,140 @@ export default function Onboarding() {
                 </div>
               )}
 
+              {step.type === 'allergies' && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {ALLERGIES.map(allergy => (
+                    <motion.button
+                      key={allergy.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => toggleSelection('allergies', allergy.id)}
+                      className={`p-6 rounded-xl border-2 transition-all ${
+                        formData.allergies.includes(allergy.id)
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 hover:border-green-300'
+                      }`}
+                    >
+                      <div className="text-3xl mb-2">{allergy.icon}</div>
+                      <p className="text-sm font-medium text-gray-900">{allergy.label}</p>
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+
+              {step.type === 'cuisines' && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {CUISINES.map(cuisine => (
+                    <motion.button
+                      key={cuisine.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => toggleSelection('favoriteCuisines', cuisine.id)}
+                      className={`p-6 rounded-xl border-2 transition-all ${
+                        formData.favoriteCuisines.includes(cuisine.id)
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 hover:border-green-300'
+                      }`}
+                    >
+                      <div className="text-3xl mb-2">{cuisine.icon}</div>
+                      <p className="text-sm font-medium text-gray-900">{cuisine.label}</p>
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+
+              {step.type === 'ingredients' && (
+                <div className="space-y-6 max-w-2xl mx-auto">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ingredients you LOVE (comma-separated)
+                    </label>
+                    <textarea
+                      value={formData.preferredIngredients}
+                      onChange={(e) => setFormData(prev => ({ ...prev, preferredIngredients: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                      rows="3"
+                      placeholder="e.g., avocado, chickpeas, mushrooms, tofu"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ingredients you DISLIKE (comma-separated)
+                    </label>
+                    <textarea
+                      value={formData.dislikedIngredients}
+                      onChange={(e) => setFormData(prev => ({ ...prev, dislikedIngredients: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                      rows="3"
+                      placeholder="e.g., cilantro, olives, eggplant"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Spice Tolerance
+                    </label>
+                    <select
+                      value={formData.spiceTolerance}
+                      onChange={(e) => setFormData(prev => ({ ...prev, spiceTolerance: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="none">No Spice</option>
+                      <option value="mild">Mild</option>
+                      <option value="medium">Medium</option>
+                      <option value="hot">Hot</option>
+                      <option value="very-hot">Very Hot</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {step.type === 'textures' && (
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Texture Preferences</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {TEXTURES.map(texture => (
+                        <motion.button
+                          key={texture.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => toggleSelection('texturePreferences', texture.id)}
+                          className={`p-6 rounded-xl border-2 transition-all ${
+                            formData.texturePreferences.includes(texture.id)
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-200 hover:border-green-300'
+                          }`}
+                        >
+                          <div className="text-3xl mb-2">{texture.icon}</div>
+                          <p className="text-sm font-medium text-gray-900">{texture.label}</p>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Flavor Profiles</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {FLAVORS.map(flavor => (
+                        <motion.button
+                          key={flavor.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => toggleSelection('flavorProfiles', flavor.id)}
+                          className={`p-6 rounded-xl border-2 transition-all ${
+                            formData.flavorProfiles.includes(flavor.id)
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-200 hover:border-green-300'
+                          }`}
+                        >
+                          <div className="text-3xl mb-2">{flavor.icon}</div>
+                          <p className="text-sm font-medium text-gray-900">{flavor.label}</p>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {step.type === 'cookingLevel' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {COOKING_LEVELS.map(level => (
@@ -529,6 +722,130 @@ export default function Onboarding() {
                       </div>
                     </motion.button>
                   ))}
+                </div>
+              )}
+
+              {step.type === 'equipment' && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {EQUIPMENT.map(equip => (
+                    <motion.button
+                      key={equip.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => toggleSelection('equipment', equip.id)}
+                      className={`p-6 rounded-xl border-2 transition-all ${
+                        formData.equipment.includes(equip.id)
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 hover:border-green-300'
+                      }`}
+                    >
+                      <div className="text-3xl mb-2">{equip.icon}</div>
+                      <p className="text-sm font-medium text-gray-900">{equip.label}</p>
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+
+              {step.type === 'health' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {HEALTH_GOALS.map(goal => (
+                      <motion.button
+                        key={goal.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setFormData(prev => ({ ...prev, primaryHealthGoal: goal.id }))}
+                        className={`p-6 rounded-xl border-2 transition-all ${
+                          formData.primaryHealthGoal === goal.id
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 hover:border-green-300'
+                        }`}
+                      >
+                        <div className="text-3xl mb-2">{goal.icon}</div>
+                        <p className="text-sm font-medium text-gray-900">{goal.label}</p>
+                      </motion.button>
+                    ))}
+                  </div>
+                  <div className="max-w-md mx-auto mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Daily Calorie Target (optional)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.calorieTarget}
+                      onChange={(e) => setFormData(prev => ({ ...prev, calorieTarget: parseInt(e.target.value) || 2000 }))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                      placeholder="2000"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {step.type === 'budget' && (
+                <div className="space-y-6 max-w-2xl mx-auto">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Budget Level
+                    </label>
+                    <select
+                      value={formData.budget}
+                      onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="low">Budget-Friendly</option>
+                      <option value="medium">Moderate</option>
+                      <option value="high">Premium</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Shopping Frequency
+                    </label>
+                    <select
+                      value={formData.shoppingFrequency}
+                      onChange={(e) => setFormData(prev => ({ ...prev, shoppingFrequency: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="biweekly">Bi-weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Meals Per Day
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="6"
+                      value={formData.mealsPerDay}
+                      onChange={(e) => setFormData(prev => ({ ...prev, mealsPerDay: parseInt(e.target.value) || 3 }))}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {step.type === 'notes' && (
+                <div className="space-y-6 max-w-2xl mx-auto">
+                  <div className="text-center mb-6">
+                    <div className="text-5xl mb-4">📝</div>
+                    <p className="text-gray-600">
+                      Is there anything else we should know? Any specific preferences, dietary needs, or information we might have missed?
+                    </p>
+                  </div>
+                  <textarea
+                    value={formData.additionalNotes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, additionalNotes: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
+                    rows="6"
+                    placeholder="Tell us anything else that would help us personalize your experience..."
+                  />
+                  <p className="text-sm text-gray-500 text-center">
+                    This helps us provide the most personalized recommendations for you!
+                  </p>
                 </div>
               )}
 
