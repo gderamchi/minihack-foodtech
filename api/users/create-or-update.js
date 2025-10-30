@@ -71,21 +71,25 @@ module.exports = async (req, res) => {
 
     const token = authHeader.split('Bearer ')[1];
     
+    // Get request body data first
+    const { firebaseUid, email, name } = req.body;
+
+    if (!firebaseUid || !email) {
+      return res.status(400).json({ error: 'Firebase UID and email are required' });
+    }
+
+    // Verify token
+    let decodedToken;
     try {
-      const decodedToken = await admin.auth().verifyIdToken(token);
-
-      const { firebaseUid, email, name } = req.body;
-
-      if (!firebaseUid || !email) {
-        return res.status(400).json({ error: 'Firebase UID and email are required' });
-      }
-
-      if (decodedToken.uid !== firebaseUid) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
+      decodedToken = await admin.auth().verifyIdToken(token);
     } catch (authError) {
       console.error('Token verification error:', authError);
       return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    // Check if token matches the firebaseUid
+    if (decodedToken.uid !== firebaseUid) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     const client = await connectToDatabase();
