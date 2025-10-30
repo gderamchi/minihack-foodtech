@@ -23,12 +23,12 @@ export default function ProtectedRoute({ children, requireOnboarding = false }) 
   }
 
   // If onboarding is required and not completed, redirect to onboarding
-  if (requireOnboarding && userProfile && !userProfile.onboardingCompleted) {
+  if (requireOnboarding && userProfile && !userProfile.user?.onboardingCompleted) {
     return <Navigate to="/onboarding" replace />;
   }
 
   // If trying to access onboarding but already completed, redirect to dashboard
-  if (location.pathname === '/onboarding' && userProfile?.onboardingCompleted) {
+  if (location.pathname === '/onboarding' && userProfile?.user?.onboardingCompleted) {
     return <Navigate to="/dashboard" replace />;
   }
 
