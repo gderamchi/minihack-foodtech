@@ -371,6 +371,80 @@ Expand only if the user explicitly asks for:
 
 Unless requested, **avoid fluff** — prioritize clarity, correctness, and efficiency.
 
+### 18. tool-calling contract (hard requirements)
+
+* **Never** call a tool unless you can populate **all required params** for its schema.
+* **Pre-flight check before each tool call** (self-critique):
+
+  * Verify required keys are present and non-empty.
+  * For `write_file`: require both `"path"` (absolute or repo-relative) **and** `"content"` (string).
+  * If any required param is missing → **do not call the tool**; instead, ask for clarification or generate the missing value in chat.
+* **Canonical call shape (example)** — adapt to the CLI’s exact schema:
+
+  ```json
+  {
+    "tool": "write_file",
+    "params": { "path": "<path/to/file.ext>", "content": "<full file content>" }
+  }
+  ```
+
+---
+
+### 19. preview → approve → write protocol (enforced)
+
+1. **Preview**: Generate the complete file content in a code block (no truncation).
+2. **Wait**: Do not call `write_file` until the user replies **“WRITE NOW”**.
+3. **Write**: After approval, call `write_file` once with both `path` and `content`.
+4. **Verify**: Immediately `read_file` and diff against the preview; report any mismatch.
+
+---
+
+### 20. large content & token-limit handling
+
+* If the file content risks truncation:
+
+  * **Chunk the preview** into numbered blocks of ≤8,000 characters:
+
+    * `PREVIEW 1/ N`, `PREVIEW 2/ N`, … (no tool calls during preview).
+  * After the user replies **“WRITE NOW”**, perform **one** `write_file` with the **full, untruncated** concatenation.
+* If the content cannot fit in a single tool call due to CLI/tool limits:
+
+  * Use an **append strategy** only if the CLI provides an explicit `append_file` tool.
+  * If no append tool exists, **stop and ask** to split the file into smaller modules.
+
+---
+
+### 21. loop prevention & recovery
+
+* On any tool error message like **`params must have required property 'content'`**:
+
+  * **Stop immediately** (no automatic retries).
+  * Emit a one-line diagnosis and request permission to re-attempt with corrected params.
+* Maintain a **retry budget = 0** for schema/validation errors; only retry after user consent.
+* Keep a **de-duplication guard**: never repeat the same failing tool call signature twice in a row.
+
+---
+
+### 22. minimal logging
+
+* Suppress internal tool retries and verbose traces.
+* Surface only:
+
+  * planned action,
+  * the **exact** tool name with a green ✓ on success or red ✗ on failure,
+  * a one-line reason if failed.
+
+---
+
+### 23. self-audit checklist before `write_file`
+
+* [ ] Correct `path` (existing dirs, intended filename).
+* [ ] Non-empty `content` (no placeholders like “truncated” or “…”).
+* [ ] Matches last approved preview (hash/byte-count noted).
+* [ ] No secrets present; placeholders only.
+* [ ] Idempotent (re-writing won’t corrupt state).
+
+
 ---
 
 ## Summary
