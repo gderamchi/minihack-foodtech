@@ -104,30 +104,12 @@ export const usersAPI = {
 
 // Weekly Menu API
 export const weeklyMenuAPI = {
-  generate: (token, preferences) => api.post('/weekly-menu/generate', preferences, {
-    headers: { Authorization: `Bearer ${token}` }
-  }),
-  getCurrent: (token) => api.get('/weekly-menu/current', {
-    headers: { Authorization: `Bearer ${token}` }
-  }),
-  getById: (token, id) => api.get(`/weekly-menu/${id}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  }),
-  update: (token, id, menuData) => api.put(`/weekly-menu/${id}`, menuData, {
-    headers: { Authorization: `Bearer ${token}` }
-  }),
-  swapMeal: (token, id, swapData) => api.post(`/weekly-menu/${id}/swap-meal`, swapData, {
-    headers: { Authorization: `Bearer ${token}` }
-  }),
-  regenerate: (token, id, options) => api.post(`/weekly-menu/${id}/regenerate`, options, {
-    headers: { Authorization: `Bearer ${token}` }
-  }),
-  saveFavorite: (token, id, name) => api.post(`/weekly-menu/${id}/favorite`, { name }, {
-    headers: { Authorization: `Bearer ${token}` }
-  }),
-  updateShoppingList: (token, id, shoppingList) => api.put(`/weekly-menu/${id}/shopping-list`, shoppingList, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
+  generate: (firebaseUid) => api.post('/weekly-menu/generate', { firebaseUid }),
+  getCurrent: (firebaseUid) => api.get('/weekly-menu/current', { params: { firebaseUid } }),
+  swapMeal: (menuId, dayIndex, mealIndex, firebaseUid) => 
+    api.post('/weekly-menu/swap-meal', { menuId, dayIndex, mealIndex, firebaseUid }),
+  getShoppingList: (menuId, firebaseUid) => 
+    api.post('/weekly-menu/shopping-list', { menuId, firebaseUid })
 };
 
 export default api;

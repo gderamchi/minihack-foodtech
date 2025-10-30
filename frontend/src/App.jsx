@@ -17,6 +17,7 @@ import MenuBrowser from './pages/MenuBrowser';
 import StoreLocator from './pages/StoreLocator';
 import DishDetail from './pages/DishDetail';
 import MenuDetail from './pages/MenuDetail';
+import WeeklyMenu from './pages/WeeklyMenu';
 
 function Navigation() {
   const { currentUser, userProfile, signOut } = useAuth();
@@ -71,6 +72,16 @@ function Navigation() {
               <FaStore />
               <span>Stores</span>
             </Link>
+            
+            {currentUser && (
+              <Link
+                to="/weekly-menu"
+                className="flex items-center space-x-1 text-gray-700 hover:text-green-600 transition"
+              >
+                <FaUtensils />
+                <span>Weekly Menu</span>
+              </Link>
+            )}
             
             {currentUser ? (
               <>
@@ -138,6 +149,14 @@ function App() {
                 element={
                   <ProtectedRoute requireOnboarding={true}>
                     <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/weekly-menu"
+                element={
+                  <ProtectedRoute requireOnboarding={true}>
+                    <WeeklyMenu />
                   </ProtectedRoute>
                 }
               />
