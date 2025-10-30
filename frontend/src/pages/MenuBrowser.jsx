@@ -22,10 +22,13 @@ function MenuBrowser() {
     try {
       setLoading(true);
       const response = await menusAPI.getAll(filters);
-      setMenus(response.data.menus);
+      // Handle different response structures
+      const menuData = response.data?.menus || response.data || [];
+      setMenus(Array.isArray(menuData) ? menuData : []);
     } catch (error) {
       console.error('Error fetching menus:', error);
       toast.error('Failed to load menus');
+      setMenus([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -38,10 +41,11 @@ function MenuBrowser() {
     });
   };
 
-  const filteredMenus = menus.filter(menu =>
-    menu.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    menu.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Safely filter menus with null checks
+  const filteredMenus = Array.isArray(menus) ? menus.filter(menu =>
+    menu?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    menu?.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : [];
 
   return (
     <div className="max-w-7xl mx-auto">
