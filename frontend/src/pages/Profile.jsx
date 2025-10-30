@@ -50,7 +50,7 @@ export default function Profile() {
       setLoading(true);
       const token = await currentUser.getIdToken();
       
-      await usersAPI.updateProfile(token, {
+      await usersAPI.updateProfile(token, currentUser.uid, {
         name: formData.name,
         location: {
           address: formData.location,
