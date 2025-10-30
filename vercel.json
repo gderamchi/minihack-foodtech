@@ -1,20 +1,44 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/dist",
-  "installCommand": "npm install",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/health",
-      "destination": "/api/health"
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/health",
+      "dest": "/api/health.js"
     },
+    {
+      "src": "/api/dishes/generate-vegan-alternative",
+      "dest": "/api/dishes/generate-vegan-alternative.js"
+    },
+    {
+      "src": "/api/stores/nearby",
+      "dest": "/api/stores/nearby.js"
+    },
+    {
+      "src": "/api/stores/recommendations-for-dish",
+      "dest": "/api/stores/recommendations-for-dish.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
+    }
+  ],
+  "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/frontend/$1"
     }
   ]
 }
