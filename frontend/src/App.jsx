@@ -21,6 +21,7 @@ import WeeklyMenu from './pages/WeeklyMenu';
 import WeeklyMenuView from './pages/WeeklyMenuView';
 import MenuTemplates from './pages/MenuTemplates';
 import ShoppingList from './pages/ShoppingList';
+import Profile from './pages/Profile';
 
 function Navigation() {
   const { currentUser, userProfile, signOut } = useAuth();
@@ -93,7 +94,14 @@ function Navigation() {
                   className="flex items-center space-x-1 text-gray-700 hover:text-green-600 transition"
                 >
                   <FaUser />
-                  <span>{userProfile?.user?.name || 'Profile'}</span>
+                  <span>Dashboard</span>
+                </Link>
+                <Link
+                  to="/profile"
+                  className="flex items-center space-x-1 text-gray-700 hover:text-green-600 transition"
+                >
+                  <FaUser />
+                  <span>Profile</span>
                 </Link>
                 <button
                   onClick={handleSignOut}
@@ -176,6 +184,14 @@ function App() {
                 element={
                   <ProtectedRoute requireOnboarding={true}>
                     <ShoppingList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
                   </ProtectedRoute>
                 }
               />

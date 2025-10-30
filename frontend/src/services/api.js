@@ -99,6 +99,10 @@ export const usersAPI = {
   }),
   createOrUpdate: (userData, token) => api.post('/users/create-or-update', userData, {
     headers: { Authorization: `Bearer ${token}` }
+  }),
+  deleteAccount: (token, firebaseUid) => api.delete('/users/delete-account', {
+    params: { firebaseUid },
+    headers: { Authorization: `Bearer ${token}` }
   })
 };
 
