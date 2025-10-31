@@ -190,6 +190,8 @@ export default function Onboarding() {
   });
   const [loading, setLoading] = useState(false);
   const [showSkipModal, setShowSkipModal] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [savedStep, setSavedStep] = useState(0);
   const { currentUser, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
@@ -260,6 +262,17 @@ export default function Onboarding() {
   const step = STEPS[currentStep];
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
+  // Check for saved progress on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('onboarding_step');
+    const savedData = localStorage.getItem('onboarding_data');
+    
+    if (saved && savedData && parseInt(saved) > 0) {
+      setSavedStep(parseInt(saved));
+      setShowResumeModal(true);
+    }
+  }, []);
+
   // Auto-save current step to localStorage
   useEffect(() => {
     localStorage.setItem('onboarding_step', currentStep.toString());
@@ -287,6 +300,51 @@ export default function Onboarding() {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     }
+  };
+
+  const handleResume = () => {
+    setCurrentStep(savedStep);
+    setShowResumeModal(false);
+  };
+
+  const handleStartFresh = () => {
+    localStorage.removeItem('onboarding_step');
+    localStorage.removeItem('onboarding_data');
+    setCurrentStep(0);
+    setFormData({
+      age: '',
+      householdSize: 1,
+      householdType: '',
+      veganDuration: '',
+      motivations: [],
+      healthConditions: [],
+      isPregnant: false,
+      isBreastfeeding: false,
+      fitnessLevel: '',
+      exerciseTypes: [],
+      fitnessGoals: [],
+      goals: [],
+      restrictions: [],
+      allergies: [],
+      favoriteCuisines: [],
+      dislikedIngredients: '',
+      preferredIngredients: '',
+      spiceTolerance: 'medium',
+      texturePreferences: [],
+      flavorProfiles: [],
+      cookingLevel: '',
+      timeAvailable: 30,
+      equipment: [],
+      mealPreferences: [],
+      mealsPerDay: 3,
+      primaryHealthGoal: '',
+      calorieTarget: 2000,
+      budget: 'medium',
+      shoppingFrequency: 'weekly',
+      location: { address: '', coordinates: [0, 0] },
+      additionalNotes: ''
+    });
+    setShowResumeModal(false);
   };
 
   const isOptionalStep = () => {
@@ -1247,6 +1305,45 @@ export default function Onboarding() {
             </div>
           </motion.div>
         </AnimatePresence>
+
+        {/* Resume or Start Fresh Modal */}
+        {showResumeModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+            >
+              <div className="text-center mb-6">
+                <div className="text-5xl mb-4">📋</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  Welcome Back!
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  You have already completed up to <span className="font-bold text-green-600">Question {savedStep + 1}</span>.
+                </p>
+                <p className="text-gray-600">
+                  Would you like to resume where you left off, or start fresh with a new questionnaire?
+                </p>
+              </div>
+
+              <div className="flex flex-col space-y-3">
+                <button
+                  onClick={handleResume}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transition"
+                >
+                  ▶️ Resume from Question {savedStep + 1}
+                </button>
+                <button
+                  onClick={handleStartFresh}
+                  className="w-full px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition"
+                >
+                  🔄 Start Fresh
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
 
         {/* Skip Confirmation Modal */}
         {showSkipModal && (
