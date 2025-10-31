@@ -185,6 +185,7 @@ const HOUSEHOLD_TYPES = [
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [showSkipModal, setShowSkipModal] = useState(false);
   const { currentUser, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
@@ -261,6 +262,18 @@ export default function Onboarding() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  const handleSkip = () => {
+    setShowSkipModal(false);
+    if (currentStep < STEPS.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const isOptionalStep = () => {
+    const step = STEPS[currentStep];
+    return step.type === 'healthConditions' || step.type === 'fitness';
   };
 
   const toggleSelection = (field, value) => {
@@ -1181,26 +1194,74 @@ export default function Onboarding() {
                 ← Back
               </button>
 
-              {currentStep < STEPS.length - 1 ? (
-                <button
-                  onClick={handleNext}
-                  disabled={!canProceed()}
-                  className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg"
-                >
-                  Continue →
-                </button>
-              ) : (
-                <button
-                  onClick={handleComplete}
-                  disabled={loading}
-                  className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg"
-                >
-                  {loading ? 'Setting up...' : 'Get Started! 🚀'}
-                </button>
-              )}
+              <div className="flex items-center space-x-3">
+                {isOptionalStep() && currentStep < STEPS.length - 1 && (
+                  <button
+                    onClick={() => setShowSkipModal(true)}
+                    className="px-6 py-3 text-gray-600 font-semibold hover:text-gray-900 border border-gray-300 rounded-xl hover:border-gray-400 transition"
+                  >
+                    Skip
+                  </button>
+                )}
+
+                {currentStep < STEPS.length - 1 ? (
+                  <button
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                    className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg"
+                  >
+                    Continue →
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleComplete}
+                    disabled={loading}
+                    className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg"
+                  >
+                    {loading ? 'Setting up...' : 'Get Started! 🚀'}
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
         </AnimatePresence>
+
+        {/* Skip Confirmation Modal */}
+        {showSkipModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
+            >
+              <div className="text-center mb-6">
+                <div className="text-5xl mb-4">⚠️</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  Skip This Step?
+                </h3>
+                <p className="text-gray-600">
+                  This information helps us provide better personalized recommendations. 
+                  Are you sure you want to skip it?
+                </p>
+              </div>
+
+              <div className="flex flex-col space-y-3">
+                <button
+                  onClick={() => setShowSkipModal(false)}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transition"
+                >
+                  Go Back & Fill It Out
+                </button>
+                <button
+                  onClick={handleSkip}
+                  className="w-full px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 hover:bg-gray-50 transition"
+                >
+                  Skip Anyway
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );
