@@ -28,7 +28,11 @@ export default function ProtectedRoute({ children, requireOnboarding = false }) 
   }
 
   // If trying to access onboarding but already completed, redirect to dashboard
-  if (location.pathname === '/onboarding' && userProfile?.user?.onboardingCompleted) {
+  // UNLESS they have ?retake=true query parameter
+  const searchParams = new URLSearchParams(location.search);
+  const isRetaking = searchParams.get('retake') === 'true';
+  
+  if (location.pathname === '/onboarding' && userProfile?.user?.onboardingCompleted && !isRetaking) {
     return <Navigate to="/dashboard" replace />;
   }
 

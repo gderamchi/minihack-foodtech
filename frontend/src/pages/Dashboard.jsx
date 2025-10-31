@@ -63,10 +63,10 @@ export default function Dashboard() {
                 </div>
               </div>
               <Link
-                to="/profile"
+                to="/onboarding?retake=true"
                 className="px-6 py-3 bg-white text-green-600 font-semibold rounded-lg hover:bg-green-50 transition whitespace-nowrap"
               >
-                Update Profile
+                Update Preferences
               </Link>
             </div>
           </motion.div>

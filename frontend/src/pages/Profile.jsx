@@ -70,7 +70,7 @@ export default function Profile() {
   };
 
   const handleRetakeOnboarding = () => {
-    navigate('/onboarding');
+    navigate('/onboarding?retake=true');
   };
 
   const handleDeleteAccount = async () => {
