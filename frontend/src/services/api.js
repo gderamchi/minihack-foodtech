@@ -136,4 +136,27 @@ export const weeklyMenuAPI = {
     })
 };
 
+// Shopping List API
+export const shoppingListAPI = {
+  get: (token) =>
+    api.get('/shopping-list', {
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+  
+  save: (token, data) =>
+    api.post('/shopping-list', data, {
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+  
+  update: (token, data) =>
+    api.put('/shopping-list', data, {
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+  
+  delete: (token) =>
+    api.delete('/shopping-list', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+};
+
 export default api;
