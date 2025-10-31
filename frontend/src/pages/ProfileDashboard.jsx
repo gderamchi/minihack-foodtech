@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,18 +8,24 @@ import AchievementBadge from '../components/AchievementBadge';
 import StreakTracker from '../components/StreakTracker';
 import ProfileCompletionBar from '../components/ProfileCompletionBar';
 import ProfileSection from '../components/ProfileSection';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 import { ACHIEVEMENTS } from '../utils/achievementSystem';
 import { usersAPI } from '../services/api';
 import { toast } from 'react-toastify';
+import { debounce } from '../utils/debounce';
 
 export default function ProfileDashboard() {
   const { currentUser, userProfile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState({});
   const [achievements, setAchievements] = useState([]);
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [formData, setFormData] = useState({});
+  
+  // Ref for debounced save
+  const debouncedSaveRef = useRef(null);
 
   useEffect(() => {
     if (userProfile) {
@@ -30,24 +36,60 @@ export default function ProfileDashboard() {
     }
   }, [userProfile]);
 
+  // Debounced save function
+  const debouncedSave = useCallback(
+    debounce(async (sectionData) => {
+      try {
+        setSaving(true);
+        const token = await currentUser.getIdToken();
+        await usersAPI.updateProfile(token, sectionData);
+        await refreshProfile();
+        toast.success('Profile updated successfully!', { autoClose: 2000 });
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        toast.error('Failed to update profile');
+      } finally {
+        setSaving(false);
+      }
+    }, 1000),
+    [currentUser, refreshProfile]
+  );
+
   const handleSaveSection = async (sectionData) => {
-    try {
-      const token = await currentUser.getIdToken();
-      await usersAPI.updateProfile(token, sectionData);
-      await refreshProfile();
-      toast.success('Profile updated successfully!');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
-    }
+    debouncedSave(sectionData);
   };
+
+  // Handle input changes with debouncing
+  const handleInputChange = useCallback((field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your profile...</p>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Skeleton */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
+            <LoadingSkeleton type="header" />
+            <div className="mt-6">
+              <LoadingSkeleton type="stats" count={3} />
+            </div>
+          </div>
+
+          {/* Quick Actions Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <LoadingSkeleton type="card" count={3} />
+          </div>
+
+          {/* Gamification Widgets Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <LoadingSkeleton type="card" count={3} />
+          </div>
+
+          {/* Profile Sections Skeleton */}
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <LoadingSkeleton type="section" count={5} />
+          </div>
         </div>
       </div>
     );
@@ -56,112 +98,138 @@ export default function ProfileDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
+        {/* Saving Indicator */}
+        {saving && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center space-x-2"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            <span>Saving...</span>
+          </motion.div>
+        )}
+
         {/* Header Section with Stats */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8 mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 Welcome back, {userProfile?.name || 'Friend'}! 👋
               </h1>
-              <p className="text-gray-600 mt-2">Here's your vegan journey at a glance</p>
+              <p className="text-gray-600 mt-2 text-sm sm:text-base">Here's your vegan journey at a glance</p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto justify-around sm:justify-end">
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">{achievements.length}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-green-600" aria-label={`${achievements.length} achievements earned`}>
+                  {achievements.length}
+                </div>
                 <div className="text-xs text-gray-500">Achievements</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">{userProfile?.loginStreak || 0}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600" aria-label={`${userProfile?.loginStreak || 0} day login streak`}>
+                  {userProfile?.loginStreak || 0}
+                </div>
                 <div className="text-xs text-gray-500">Day Streak</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">{profileCompletion}%</div>
+                <div className="text-2xl sm:text-3xl font-bold text-purple-600" aria-label={`${profileCompletion}% profile complete`}>
+                  {profileCompletion}%
+                </div>
                 <div className="text-xs text-gray-500">Complete</div>
               </div>
             </div>
           </div>
 
           {/* Achievement Badges Preview */}
-          <div className="flex items-center space-x-2 overflow-x-auto pb-2">
-            <span className="text-sm font-medium text-gray-700 mr-2">Recent:</span>
+          <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-hide" role="list" aria-label="Recent achievements">
+            <span className="text-sm font-medium text-gray-700 mr-2 flex-shrink-0">Recent:</span>
             {Object.values(ACHIEVEMENTS).slice(0, 6).map((achievement) => {
               const earned = achievements.some(a => a.id === achievement.id);
               return (
-                <AchievementBadge
-                  key={achievement.id}
-                  achievement={achievement}
-                  earned={earned}
-                  size="sm"
-                />
+                <div key={achievement.id} role="listitem">
+                  <AchievementBadge
+                    achievement={achievement}
+                    earned={earned}
+                    size="sm"
+                  />
+                </div>
               );
             })}
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6" role="navigation" aria-label="Quick actions">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/dish-input')}
-            className="bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-6 text-left hover:shadow-xl transition"
+            className="bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-4 sm:p-6 text-left hover:shadow-xl transition focus:outline-none focus:ring-4 focus:ring-green-300"
+            aria-label="Find vegan alternative recipes"
           >
-            <FaUtensils className="text-4xl mb-3" />
-            <h3 className="text-xl font-bold mb-2">Find Vegan Alternative</h3>
-            <p className="text-green-100 text-sm">Get AI-powered vegan recipe suggestions</p>
+            <FaUtensils className="text-3xl sm:text-4xl mb-3" aria-hidden="true" />
+            <h3 className="text-lg sm:text-xl font-bold mb-2">Find Vegan Alternative</h3>
+            <p className="text-green-100 text-xs sm:text-sm">Get AI-powered vegan recipe suggestions</p>
           </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/stores')}
-            className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg p-6 text-left hover:shadow-xl transition"
+            className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-lg p-4 sm:p-6 text-left hover:shadow-xl transition focus:outline-none focus:ring-4 focus:ring-blue-300"
+            aria-label="Find vegan-friendly stores nearby"
           >
-            <FaStore className="text-4xl mb-3" />
-            <h3 className="text-xl font-bold mb-2">Find Stores</h3>
-            <p className="text-blue-100 text-sm">Locate vegan-friendly stores nearby</p>
+            <FaStore className="text-3xl sm:text-4xl mb-3" aria-hidden="true" />
+            <h3 className="text-lg sm:text-xl font-bold mb-2">Find Stores</h3>
+            <p className="text-blue-100 text-xs sm:text-sm">Locate vegan-friendly stores nearby</p>
           </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/weekly-menu')}
-            className="bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl shadow-lg p-6 text-left hover:shadow-xl transition"
+            className="bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl shadow-lg p-4 sm:p-6 text-left hover:shadow-xl transition focus:outline-none focus:ring-4 focus:ring-purple-300 sm:col-span-2 lg:col-span-1"
+            aria-label="Plan your weekly menu"
           >
-            <FaCalendar className="text-4xl mb-3" />
-            <h3 className="text-xl font-bold mb-2">Weekly Menu</h3>
-            <p className="text-purple-100 text-sm">Plan your meals for the week</p>
+            <FaCalendar className="text-3xl sm:text-4xl mb-3" aria-hidden="true" />
+            <h3 className="text-lg sm:text-xl font-bold mb-2">Weekly Menu</h3>
+            <p className="text-purple-100 text-xs sm:text-sm">Plan your meals for the week</p>
           </motion.button>
         </div>
 
         {/* Gamification Widgets */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
           <ProfileCompletionBar completion={profileCompletion} />
           <StreakTracker 
             streak={userProfile?.loginStreak || 0} 
             maxStreak={userProfile?.maxLoginStreak || 0} 
           />
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Achievements</h3>
-              <FaTrophy className="text-2xl text-yellow-500" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">Achievements</h3>
+              <FaTrophy className="text-xl sm:text-2xl text-yellow-500" aria-hidden="true" />
             </div>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-4 gap-2 sm:gap-3" role="list" aria-label="Achievement badges">
               {Object.values(ACHIEVEMENTS).map((achievement) => {
                 const earned = achievements.some(a => a.id === achievement.id);
                 return (
-                  <AchievementBadge
-                    key={achievement.id}
-                    achievement={achievement}
-                    earned={earned}
-                    size="md"
-                  />
+                  <div key={achievement.id} role="listitem">
+                    <AchievementBadge
+                      achievement={achievement}
+                      earned={earned}
+                      size="md"
+                    />
+                  </div>
                 );
               })}
             </div>
             <button
               onClick={() => {/* Show all achievements modal */}}
-              className="w-full mt-4 text-sm text-green-600 hover:text-green-700 font-medium"
+              className="w-full mt-4 text-xs sm:text-sm text-green-600 hover:text-green-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 rounded py-1"
+              aria-label="View all achievements"
             >
               View All Achievements →
             </button>
@@ -169,8 +237,8 @@ export default function ProfileDashboard() {
         </div>
 
         {/* Profile Sections */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Profile Details</h2>
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8 mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Your Profile Details</h2>
           
           {/* Personal Information */}
           <ProfileSection
@@ -191,8 +259,10 @@ export default function ProfileDashboard() {
                     <input
                       type="text"
                       value={formData.name || ''}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      aria-label="Name"
+                      autoComplete="name"
                     />
                   ) : (
                     <p className="text-gray-900">{userProfile?.name || 'Not set'}</p>
@@ -209,8 +279,11 @@ export default function ProfileDashboard() {
                     <input
                       type="number"
                       value={formData.age || ''}
-                      onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                      onChange={(e) => handleInputChange('age', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      aria-label="Age"
+                      min="1"
+                      max="120"
                     />
                   ) : (
                     <p className="text-gray-900">{userProfile?.age || 'Not set'}</p>
@@ -514,8 +587,8 @@ export default function ProfileDashboard() {
         </div>
 
         {/* Account Settings */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h2>
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Account Settings</h2>
 
           <ProfileSection
             title="Account Management"
@@ -523,10 +596,10 @@ export default function ProfileDashboard() {
             editable={false}
           >
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg space-y-3 sm:space-y-0">
+                <div className="flex-1">
                   <h3 className="font-medium text-gray-900">Delete Account</h3>
-                  <p className="text-sm text-gray-600">Permanently delete your account and all data</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Permanently delete your account and all data</p>
                 </div>
                 <button
                   onClick={() => {
@@ -534,21 +607,23 @@ export default function ProfileDashboard() {
                       console.log('Account deletion requested');
                     }
                   }}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                  className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition focus:outline-none focus:ring-4 focus:ring-red-300"
+                  aria-label="Delete account permanently"
                 >
                   Delete Account
                 </button>
               </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg space-y-3 sm:space-y-0">
+                <div className="flex-1">
                   <h3 className="font-medium text-gray-900">Export Data</h3>
-                  <p className="text-sm text-gray-600">Download all your profile data</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Download all your profile data</p>
                 </div>
                 <button
                   onClick={() => {
                     console.log('Data export requested');
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition focus:outline-none focus:ring-4 focus:ring-blue-300"
+                  aria-label="Export your profile data"
                 >
                   Export Data
                 </button>
