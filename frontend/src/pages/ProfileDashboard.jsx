@@ -7,7 +7,10 @@ import { checkAchievements, calculateProfileCompletion } from '../utils/achievem
 import AchievementBadge from '../components/AchievementBadge';
 import StreakTracker from '../components/StreakTracker';
 import ProfileCompletionBar from '../components/ProfileCompletionBar';
+import ProfileSection from '../components/ProfileSection';
 import { ACHIEVEMENTS } from '../utils/achievementSystem';
+import { usersAPI } from '../services/api';
+import { toast } from 'react-toastify';
 
 export default function ProfileDashboard() {
   const { currentUser, userProfile, refreshProfile } = useAuth();
@@ -16,14 +19,28 @@ export default function ProfileDashboard() {
   const [editMode, setEditMode] = useState({});
   const [achievements, setAchievements] = useState([]);
   const [profileCompletion, setProfileCompletion] = useState(0);
+  const [formData, setFormData] = useState({});
 
   useEffect(() => {
     if (userProfile) {
       setLoading(false);
       setAchievements(checkAchievements(userProfile));
       setProfileCompletion(calculateProfileCompletion(userProfile));
+      setFormData(userProfile);
     }
   }, [userProfile]);
+
+  const handleSaveSection = async (sectionData) => {
+    try {
+      const token = await currentUser.getIdToken();
+      await usersAPI.updateProfile(token, sectionData);
+      await refreshProfile();
+      toast.success('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    }
+  };
 
   if (loading) {
     return (
@@ -151,10 +168,105 @@ export default function ProfileDashboard() {
           </div>
         </div>
 
-        {/* Profile Sections - Next step */}
+        {/* Profile Sections */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Profile</h2>
-          <p className="text-gray-600">Profile sections will be added in next steps...</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Profile Details</h2>
+          
+          {/* Personal Information */}
+          <ProfileSection
+            title="Personal Information"
+            icon="👤"
+            defaultOpen={true}
+            onSave={() => handleSaveSection({
+              name: formData.name,
+              email: formData.email,
+              age: formData.age
+            })}
+          >
+            {(isEditing) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={formData.name || ''}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{userProfile?.name || 'Not set'}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <p className="text-gray-900">{userProfile?.email}</p>
+                  <p className="text-xs text-gray-500">Email cannot be changed</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      value={formData.age || ''}
+                      onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  ) : (
+                    <p className="text-gray-900">{userProfile?.age || 'Not set'}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </ProfileSection>
+
+          {/* Vegan Journey */}
+          <ProfileSection
+            title="Vegan Journey"
+            icon="🌱"
+            onSave={() => handleSaveSection({
+              veganDuration: formData.veganDuration,
+              motivations: formData.motivations
+            })}
+          >
+            {(isEditing) => (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+                  <p className="text-gray-900">{userProfile?.veganDuration || 'Not set'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Motivations</label>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile?.motivations?.map((motivation) => (
+                      <span key={motivation} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                        {motivation}
+                      </span>
+                    )) || <p className="text-gray-500">Not set</p>}
+                  </div>
+                </div>
+              </div>
+            )}
+          </ProfileSection>
+
+          {/* Dietary Goals */}
+          <ProfileSection
+            title="Dietary Goals"
+            icon="🎯"
+            onSave={() => handleSaveSection({
+              goals: formData.goals
+            })}
+          >
+            {(isEditing) => (
+              <div className="flex flex-wrap gap-2">
+                {userProfile?.goals?.map((goal) => (
+                  <span key={goal} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                    {goal}
+                  </span>
+                )) || <p className="text-gray-500">Not set</p>}
+              </div>
+            )}
+          </ProfileSection>
         </div>
       </div>
     </div>
