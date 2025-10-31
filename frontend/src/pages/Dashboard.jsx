@@ -45,6 +45,33 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Update Profile Banner */}
+        {userProfile?.user?.onboardingCompleted && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 mb-8 text-white"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">✨</div>
+                <div>
+                  <h3 className="text-xl font-bold mb-1">Your Profile is Set Up!</h3>
+                  <p className="text-green-100">
+                    Want to update your preferences? You can edit your profile anytime.
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/profile"
+                className="px-6 py-3 bg-white text-green-600 font-semibold rounded-lg hover:bg-green-50 transition whitespace-nowrap"
+              >
+                Update Profile
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <motion.div
