@@ -10,20 +10,19 @@ const STEPS = [
   { id: 2, title: 'Personal Info', subtitle: 'Tell us about yourself', type: 'personal' },
   { id: 3, title: 'Your Household', subtitle: 'Who are you cooking for?', type: 'household' },
   { id: 4, title: 'Dietary Goals', subtitle: 'What brings you to plant-based eating?', type: 'goals' },
-  { id: 5, title: 'Current Diet', subtitle: 'Where are you starting from?', type: 'currentDiet' },
-  { id: 6, title: 'Dietary Restrictions', subtitle: 'Any restrictions?', type: 'restrictions' },
-  { id: 7, title: 'Food Allergies', subtitle: 'What should we avoid?', type: 'allergies' },
-  { id: 8, title: 'Favorite Cuisines', subtitle: 'What flavors do you love?', type: 'cuisines' },
-  { id: 9, title: 'Ingredient Preferences', subtitle: 'Likes and dislikes', type: 'ingredients' },
-  { id: 10, title: 'Texture & Flavor', subtitle: 'How do you like your food?', type: 'textures' },
-  { id: 11, title: 'Cooking Skills', subtitle: 'Your kitchen experience', type: 'cookingLevel' },
-  { id: 12, title: 'Kitchen Equipment', subtitle: 'What tools do you have?', type: 'equipment' },
-  { id: 13, title: 'Meal Planning', subtitle: 'Your eating habits', type: 'mealPreferences' },
-  { id: 14, title: 'Health Goals', subtitle: 'What are you aiming for?', type: 'health' },
-  { id: 15, title: 'Budget & Shopping', subtitle: 'Your preferences', type: 'budget' },
-  { id: 16, title: 'Your Location', subtitle: 'Find stores near you', type: 'location' },
-  { id: 17, title: 'Additional Notes', subtitle: 'Anything else?', type: 'notes' },
-  { id: 18, title: 'All Set! 🎉', subtitle: 'Your personalized plan is ready', type: 'complete' }
+  { id: 5, title: 'Dietary Restrictions', subtitle: 'Any restrictions?', type: 'restrictions' },
+  { id: 6, title: 'Food Allergies', subtitle: 'What should we avoid?', type: 'allergies' },
+  { id: 7, title: 'Favorite Cuisines', subtitle: 'What flavors do you love?', type: 'cuisines' },
+  { id: 8, title: 'Ingredient Preferences', subtitle: 'Likes and dislikes', type: 'ingredients' },
+  { id: 9, title: 'Texture & Flavor', subtitle: 'How do you like your food?', type: 'textures' },
+  { id: 10, title: 'Cooking Skills', subtitle: 'Your kitchen experience', type: 'cookingLevel' },
+  { id: 11, title: 'Kitchen Equipment', subtitle: 'What tools do you have?', type: 'equipment' },
+  { id: 12, title: 'Meal Planning', subtitle: 'Your eating habits', type: 'mealPreferences' },
+  { id: 13, title: 'Health Goals', subtitle: 'What are you aiming for?', type: 'health' },
+  { id: 14, title: 'Budget & Shopping', subtitle: 'Your preferences', type: 'budget' },
+  { id: 15, title: 'Your Location', subtitle: 'Find stores near you', type: 'location' },
+  { id: 16, title: 'Additional Notes', subtitle: 'Anything else?', type: 'notes' },
+  { id: 17, title: 'All Set! 🎉', subtitle: 'Your personalized plan is ready', type: 'complete' }
 ];
 
 const DIETARY_GOALS = [
@@ -33,13 +32,6 @@ const DIETARY_GOALS = [
   { id: 'weight', label: 'Weight Management', icon: '⚖️', description: 'Healthy weight goals' },
   { id: 'energy', label: 'More Energy', icon: '⚡', description: 'Boost daily energy' },
   { id: 'curious', label: 'Just Curious', icon: '🤔', description: 'Exploring options' }
-];
-
-const CURRENT_DIETS = [
-  { id: 'omnivore', label: 'Omnivore', icon: '🍖', description: 'Eat everything' },
-  { id: 'flexitarian', label: 'Flexitarian', icon: '🥗', description: 'Mostly plant-based' },
-  { id: 'vegetarian', label: 'Vegetarian', icon: '🥕', description: 'No meat' },
-  { id: 'vegan', label: 'Vegan', icon: '🌱', description: 'Fully plant-based' }
 ];
 
 const RESTRICTIONS = [
@@ -145,7 +137,6 @@ export default function Onboarding() {
     
     // Dietary
     goals: [],
-    currentDiet: '',
     restrictions: [],
     allergies: [],
     
@@ -242,7 +233,7 @@ export default function Onboarding() {
       await usersAPI.saveOnboardingStep(
         token,
         currentUser.uid,
-        18,
+        17,
         {
           personal: {
             age: formData.age,
@@ -251,7 +242,6 @@ export default function Onboarding() {
           },
           dietary: {
             goals: formData.goals,
-            currentDiet: formData.currentDiet,
             restrictions: formData.restrictions,
             allergies: formData.allergies
           },
@@ -314,8 +304,6 @@ export default function Onboarding() {
         return formData.householdType !== '';
       case 'goals':
         return formData.goals.length > 0;
-      case 'currentDiet':
-        return formData.currentDiet !== '';
       case 'restrictions':
         return formData.restrictions.length > 0;
       case 'allergies':
@@ -494,32 +482,6 @@ export default function Onboarding() {
                         <div>
                           <h3 className="font-semibold text-gray-900 mb-1">{goal.label}</h3>
                           <p className="text-sm text-gray-600">{goal.description}</p>
-                        </div>
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              )}
-
-              {step.type === 'currentDiet' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {CURRENT_DIETS.map(diet => (
-                    <motion.button
-                      key={diet.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => toggleSelection('currentDiet', diet.id)}
-                      className={`p-6 rounded-xl border-2 transition-all text-left ${
-                        formData.currentDiet === diet.id
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-200 hover:border-green-300'
-                      }`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <span className="text-4xl">{diet.icon}</span>
-                        <div>
-                          <h3 className="font-semibold text-gray-900 mb-1">{diet.label}</h3>
-                          <p className="text-sm text-gray-600">{diet.description}</p>
                         </div>
                       </div>
                     </motion.button>
