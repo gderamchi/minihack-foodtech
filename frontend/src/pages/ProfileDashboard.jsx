@@ -267,6 +267,165 @@ export default function ProfileDashboard() {
               </div>
             )}
           </ProfileSection>
+
+          {/* Health Profile */}
+          <ProfileSection
+            title="Health Profile"
+            icon="🏥"
+            onSave={() => handleSaveSection({
+              healthConditions: formData.healthConditions,
+              isPregnant: formData.isPregnant,
+              isBreastfeeding: formData.isBreastfeeding
+            })}
+          >
+            {(isEditing) => (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Health Conditions</label>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile?.healthConditions?.map((condition) => (
+                      <span key={condition} className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">
+                        {condition}
+                      </span>
+                    )) || <p className="text-gray-500">None</p>}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" checked={userProfile?.isPregnant} disabled className="rounded" />
+                    <span className="text-sm text-gray-700">Pregnant 🤰</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" checked={userProfile?.isBreastfeeding} disabled className="rounded" />
+                    <span className="text-sm text-gray-700">Breastfeeding 🤱</span>
+                  </label>
+                </div>
+              </div>
+            )}
+          </ProfileSection>
+
+          {/* Fitness & Activity */}
+          <ProfileSection
+            title="Fitness & Activity"
+            icon="💪"
+            onSave={() => handleSaveSection({
+              fitnessLevel: formData.fitnessLevel,
+              exerciseTypes: formData.exerciseTypes,
+              fitnessGoals: formData.fitnessGoals
+            })}
+          >
+            {(isEditing) => (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Activity Level</label>
+                  <p className="text-gray-900">{userProfile?.fitnessLevel || 'Not set'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Exercise Types</label>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile?.exerciseTypes?.map((type) => (
+                      <span key={type} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+                        {type}
+                      </span>
+                    )) || <p className="text-gray-500">Not set</p>}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Fitness Goals</label>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile?.fitnessGoals?.map((goal) => (
+                      <span key={goal} className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">
+                        {goal}
+                      </span>
+                    )) || <p className="text-gray-500">Not set</p>}
+                  </div>
+                </div>
+              </div>
+            )}
+          </ProfileSection>
+
+          {/* Dietary Restrictions & Allergies */}
+          <ProfileSection
+            title="Dietary Restrictions & Allergies"
+            icon="⚠️"
+            onSave={() => handleSaveSection({
+              restrictions: formData.restrictions,
+              allergies: formData.allergies
+            })}
+          >
+            {(isEditing) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Restrictions</label>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile?.restrictions?.map((restriction) => (
+                      <span key={restriction} className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">
+                        {restriction}
+                      </span>
+                    )) || <p className="text-gray-500">None</p>}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Allergies</label>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile?.allergies?.map((allergy) => (
+                      <span key={allergy} className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">
+                        {allergy}
+                      </span>
+                    )) || <p className="text-gray-500">None</p>}
+                  </div>
+                </div>
+              </div>
+            )}
+          </ProfileSection>
+
+          {/* Food Preferences */}
+          <ProfileSection
+            title="Food Preferences"
+            icon="🍽️"
+            onSave={() => handleSaveSection({
+              favoriteCuisines: formData.favoriteCuisines,
+              texturePreferences: formData.texturePreferences,
+              flavorProfiles: formData.flavorProfiles
+            })}
+          >
+            {(isEditing) => (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Favorite Cuisines</label>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile?.favoriteCuisines?.map((cuisine) => (
+                      <span key={cuisine} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">
+                        {cuisine}
+                      </span>
+                    )) || <p className="text-gray-500">Not set</p>}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Texture Preferences</label>
+                    <div className="flex flex-wrap gap-2">
+                      {userProfile?.texturePreferences?.map((texture) => (
+                        <span key={texture} className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm">
+                          {texture}
+                        </span>
+                      )) || <p className="text-gray-500">Not set</p>}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Flavor Profiles</label>
+                    <div className="flex flex-wrap gap-2">
+                      {userProfile?.flavorProfiles?.map((flavor) => (
+                        <span key={flavor} className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm">
+                          {flavor}
+                        </span>
+                      )) || <p className="text-gray-500">Not set</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </ProfileSection>
         </div>
       </div>
     </div>
