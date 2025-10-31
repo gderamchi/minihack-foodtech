@@ -11,19 +11,20 @@ const STEPS = [
   { id: 3, title: 'Your Household', subtitle: 'Who are you cooking for?', type: 'household' },
   { id: 4, title: 'Your Vegan Journey', subtitle: 'Where are you in your transition?', type: 'veganJourney' },
   { id: 5, title: 'Dietary Goals', subtitle: 'What brings you to plant-based eating?', type: 'goals' },
-  { id: 6, title: 'Dietary Restrictions', subtitle: 'Any restrictions?', type: 'restrictions' },
-  { id: 7, title: 'Food Allergies', subtitle: 'What should we avoid?', type: 'allergies' },
-  { id: 8, title: 'Favorite Cuisines', subtitle: 'What flavors do you love?', type: 'cuisines' },
-  { id: 9, title: 'Ingredient Preferences', subtitle: 'Likes and dislikes', type: 'ingredients' },
-  { id: 10, title: 'Texture & Flavor', subtitle: 'How do you like your food?', type: 'textures' },
-  { id: 11, title: 'Cooking Skills', subtitle: 'Your kitchen experience', type: 'cookingLevel' },
-  { id: 12, title: 'Kitchen Equipment', subtitle: 'What tools do you have?', type: 'equipment' },
-  { id: 13, title: 'Meal Planning', subtitle: 'Your eating habits', type: 'mealPreferences' },
-  { id: 14, title: 'Health Goals', subtitle: 'What are you aiming for?', type: 'health' },
-  { id: 15, title: 'Budget & Shopping', subtitle: 'Your preferences', type: 'budget' },
-  { id: 16, title: 'Your Location', subtitle: 'Find stores near you', type: 'location' },
-  { id: 17, title: 'Additional Notes', subtitle: 'Anything else?', type: 'notes' },
-  { id: 18, title: 'All Set! 🎉', subtitle: 'Your personalized plan is ready', type: 'complete' }
+  { id: 6, title: 'Health Profile', subtitle: 'Help us personalize for your health', type: 'healthConditions' },
+  { id: 7, title: 'Dietary Restrictions', subtitle: 'Any restrictions?', type: 'restrictions' },
+  { id: 8, title: 'Food Allergies', subtitle: 'What should we avoid?', type: 'allergies' },
+  { id: 9, title: 'Favorite Cuisines', subtitle: 'What flavors do you love?', type: 'cuisines' },
+  { id: 10, title: 'Ingredient Preferences', subtitle: 'Likes and dislikes', type: 'ingredients' },
+  { id: 11, title: 'Texture & Flavor', subtitle: 'How do you like your food?', type: 'textures' },
+  { id: 12, title: 'Cooking Skills', subtitle: 'Your kitchen experience', type: 'cookingLevel' },
+  { id: 13, title: 'Kitchen Equipment', subtitle: 'What tools do you have?', type: 'equipment' },
+  { id: 14, title: 'Meal Planning', subtitle: 'Your eating habits', type: 'mealPreferences' },
+  { id: 15, title: 'Health Goals', subtitle: 'What are you aiming for?', type: 'health' },
+  { id: 16, title: 'Budget & Shopping', subtitle: 'Your preferences', type: 'budget' },
+  { id: 17, title: 'Your Location', subtitle: 'Find stores near you', type: 'location' },
+  { id: 18, title: 'Additional Notes', subtitle: 'Anything else?', type: 'notes' },
+  { id: 19, title: 'All Set! 🎉', subtitle: 'Your personalized plan is ready', type: 'complete' }
 ];
 
 const DIETARY_GOALS = [
@@ -50,6 +51,17 @@ const MOTIVATIONS = [
   { id: 'religious', label: 'Religious/Spiritual', icon: '🙏', description: 'Faith-based' },
   { id: 'cost', label: 'Cost Savings', icon: '💰', description: 'Budget-friendly' },
   { id: 'other', label: 'Other', icon: '🤔', description: 'Different reason' }
+];
+
+const HEALTH_CONDITIONS = [
+  { id: 'diabetes', label: 'Diabetes', icon: '🩺' },
+  { id: 'high-bp', label: 'High Blood Pressure', icon: '❤️' },
+  { id: 'high-cholesterol', label: 'High Cholesterol', icon: '📊' },
+  { id: 'heart-disease', label: 'Heart Disease', icon: '💔' },
+  { id: 'digestive-issues', label: 'Digestive Issues', icon: '🫃' },
+  { id: 'thyroid', label: 'Thyroid Issues', icon: '🦋' },
+  { id: 'pcos', label: 'PCOS', icon: '🔬' },
+  { id: 'none', label: 'None', icon: '✅' }
 ];
 
 const RESTRICTIONS = [
@@ -157,6 +169,11 @@ export default function Onboarding() {
     veganDuration: '',
     motivations: [],
     
+    // Health
+    healthConditions: [],
+    isPregnant: false,
+    isBreastfeeding: false,
+    
     // Dietary
     goals: [],
     restrictions: [],
@@ -255,7 +272,7 @@ export default function Onboarding() {
       await usersAPI.saveOnboardingStep(
         token,
         currentUser.uid,
-        18,
+        19,
         {
           personal: {
             age: formData.age,
@@ -265,6 +282,11 @@ export default function Onboarding() {
           veganJourney: {
             duration: formData.veganDuration,
             motivations: formData.motivations
+          },
+          health: {
+            conditions: formData.healthConditions,
+            isPregnant: formData.isPregnant,
+            isBreastfeeding: formData.isBreastfeeding
           },
           dietary: {
             goals: formData.goals,
@@ -330,6 +352,8 @@ export default function Onboarding() {
         return formData.householdType !== '';
       case 'veganJourney':
         return formData.veganDuration !== '' && formData.motivations.length > 0;
+      case 'healthConditions':
+        return true; // Optional step
       case 'goals':
         return formData.goals.length > 0;
       case 'restrictions':
@@ -568,6 +592,62 @@ export default function Onboarding() {
                       </div>
                     </motion.button>
                   ))}
+                </div>
+              )}
+
+              {step.type === 'healthConditions' && (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-blue-800">
+                      <span className="font-semibold">Optional:</span> This helps us provide better recommendations. You can skip this step.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Do you have any of these health conditions? (Select all that apply)
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {HEALTH_CONDITIONS.map((condition) => (
+                        <motion.button
+                          key={condition.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => toggleSelection('healthConditions', condition.id)}
+                          className={`p-4 rounded-lg border-2 transition ${
+                            formData.healthConditions.includes(condition.id)
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-200 hover:border-green-300'
+                          }`}
+                        >
+                          <div className="text-3xl mb-1">{condition.icon}</div>
+                          <div className="text-sm font-medium text-gray-900">{condition.label}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-4 border-t">
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isPregnant}
+                        onChange={(e) => setFormData({ ...formData, isPregnant: e.target.checked })}
+                        className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      />
+                      <span className="text-gray-700">I am currently pregnant 🤰</span>
+                    </label>
+
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isBreastfeeding}
+                        onChange={(e) => setFormData({ ...formData, isBreastfeeding: e.target.checked })}
+                        className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      />
+                      <span className="text-gray-700">I am currently breastfeeding 🤱</span>
+                    </label>
+                  </div>
                 </div>
               )}
 
