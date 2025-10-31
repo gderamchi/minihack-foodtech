@@ -12,19 +12,20 @@ const STEPS = [
   { id: 4, title: 'Your Vegan Journey', subtitle: 'Where are you in your transition?', type: 'veganJourney' },
   { id: 5, title: 'Dietary Goals', subtitle: 'What brings you to plant-based eating?', type: 'goals' },
   { id: 6, title: 'Health Profile', subtitle: 'Help us personalize for your health', type: 'healthConditions' },
-  { id: 7, title: 'Dietary Restrictions', subtitle: 'Any restrictions?', type: 'restrictions' },
-  { id: 8, title: 'Food Allergies', subtitle: 'What should we avoid?', type: 'allergies' },
-  { id: 9, title: 'Favorite Cuisines', subtitle: 'What flavors do you love?', type: 'cuisines' },
-  { id: 10, title: 'Ingredient Preferences', subtitle: 'Likes and dislikes', type: 'ingredients' },
-  { id: 11, title: 'Texture & Flavor', subtitle: 'How do you like your food?', type: 'textures' },
-  { id: 12, title: 'Cooking Skills', subtitle: 'Your kitchen experience', type: 'cookingLevel' },
-  { id: 13, title: 'Kitchen Equipment', subtitle: 'What tools do you have?', type: 'equipment' },
-  { id: 14, title: 'Meal Planning', subtitle: 'Your eating habits', type: 'mealPreferences' },
-  { id: 15, title: 'Health Goals', subtitle: 'What are you aiming for?', type: 'health' },
-  { id: 16, title: 'Budget & Shopping', subtitle: 'Your preferences', type: 'budget' },
-  { id: 17, title: 'Your Location', subtitle: 'Find stores near you', type: 'location' },
-  { id: 18, title: 'Additional Notes', subtitle: 'Anything else?', type: 'notes' },
-  { id: 19, title: 'All Set! 🎉', subtitle: 'Your personalized plan is ready', type: 'complete' }
+  { id: 7, title: 'Fitness & Activity', subtitle: 'Your exercise routine', type: 'fitness' },
+  { id: 8, title: 'Dietary Restrictions', subtitle: 'Any restrictions?', type: 'restrictions' },
+  { id: 9, title: 'Food Allergies', subtitle: 'What should we avoid?', type: 'allergies' },
+  { id: 10, title: 'Favorite Cuisines', subtitle: 'What flavors do you love?', type: 'cuisines' },
+  { id: 11, title: 'Ingredient Preferences', subtitle: 'Likes and dislikes', type: 'ingredients' },
+  { id: 12, title: 'Texture & Flavor', subtitle: 'How do you like your food?', type: 'textures' },
+  { id: 13, title: 'Cooking Skills', subtitle: 'Your kitchen experience', type: 'cookingLevel' },
+  { id: 14, title: 'Kitchen Equipment', subtitle: 'What tools do you have?', type: 'equipment' },
+  { id: 15, title: 'Meal Planning', subtitle: 'Your eating habits', type: 'mealPreferences' },
+  { id: 16, title: 'Health Goals', subtitle: 'What are you aiming for?', type: 'health' },
+  { id: 17, title: 'Budget & Shopping', subtitle: 'Your preferences', type: 'budget' },
+  { id: 18, title: 'Your Location', subtitle: 'Find stores near you', type: 'location' },
+  { id: 19, title: 'Additional Notes', subtitle: 'Anything else?', type: 'notes' },
+  { id: 20, title: 'All Set! 🎉', subtitle: 'Your personalized plan is ready', type: 'complete' }
 ];
 
 const DIETARY_GOALS = [
@@ -62,6 +63,34 @@ const HEALTH_CONDITIONS = [
   { id: 'thyroid', label: 'Thyroid Issues', icon: '🦋' },
   { id: 'pcos', label: 'PCOS', icon: '🔬' },
   { id: 'none', label: 'None', icon: '✅' }
+];
+
+const FITNESS_LEVELS = [
+  { id: 'sedentary', label: 'Sedentary', icon: '🛋️', description: 'Little to no exercise' },
+  { id: 'light', label: 'Lightly Active', icon: '🚶', description: '1-3 days/week' },
+  { id: 'moderate', label: 'Moderately Active', icon: '🏃', description: '3-5 days/week' },
+  { id: 'very-active', label: 'Very Active', icon: '💪', description: '6-7 days/week' },
+  { id: 'athlete', label: 'Athlete', icon: '🏆', description: 'Intense daily training' }
+];
+
+const EXERCISE_TYPES = [
+  { id: 'cardio', label: 'Cardio', icon: '🏃' },
+  { id: 'strength', label: 'Strength Training', icon: '🏋️' },
+  { id: 'yoga', label: 'Yoga', icon: '🧘' },
+  { id: 'sports', label: 'Sports', icon: '⚽' },
+  { id: 'walking', label: 'Walking/Hiking', icon: '🥾' },
+  { id: 'cycling', label: 'Cycling', icon: '🚴' },
+  { id: 'swimming', label: 'Swimming', icon: '🏊' },
+  { id: 'none', label: 'None', icon: '❌' }
+];
+
+const FITNESS_GOALS = [
+  { id: 'maintain', label: 'Maintain Weight', icon: '⚖️' },
+  { id: 'lose', label: 'Lose Weight', icon: '📉' },
+  { id: 'gain', label: 'Gain Muscle', icon: '💪' },
+  { id: 'endurance', label: 'Build Endurance', icon: '🏃' },
+  { id: 'flexibility', label: 'Improve Flexibility', icon: '🤸' },
+  { id: 'general', label: 'General Fitness', icon: '✨' }
 ];
 
 const RESTRICTIONS = [
@@ -174,6 +203,11 @@ export default function Onboarding() {
     isPregnant: false,
     isBreastfeeding: false,
     
+    // Fitness
+    fitnessLevel: '',
+    exerciseTypes: [],
+    fitnessGoals: [],
+    
     // Dietary
     goals: [],
     restrictions: [],
@@ -272,7 +306,7 @@ export default function Onboarding() {
       await usersAPI.saveOnboardingStep(
         token,
         currentUser.uid,
-        19,
+        20,
         {
           personal: {
             age: formData.age,
@@ -287,6 +321,11 @@ export default function Onboarding() {
             conditions: formData.healthConditions,
             isPregnant: formData.isPregnant,
             isBreastfeeding: formData.isBreastfeeding
+          },
+          fitness: {
+            level: formData.fitnessLevel,
+            exerciseTypes: formData.exerciseTypes,
+            goals: formData.fitnessGoals
           },
           dietary: {
             goals: formData.goals,
@@ -353,6 +392,8 @@ export default function Onboarding() {
       case 'veganJourney':
         return formData.veganDuration !== '' && formData.motivations.length > 0;
       case 'healthConditions':
+        return true; // Optional step
+      case 'fitness':
         return true; // Optional step
       case 'goals':
         return formData.goals.length > 0;
@@ -647,6 +688,89 @@ export default function Onboarding() {
                       />
                       <span className="text-gray-700">I am currently breastfeeding 🤱</span>
                     </label>
+                  </div>
+                </div>
+              )}
+
+              {step.type === 'fitness' && (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-blue-800">
+                      <span className="font-semibold">Optional:</span> Help us tailor nutrition for your activity level.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      What's your activity level?
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {FITNESS_LEVELS.map((level) => (
+                        <motion.button
+                          key={level.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setFormData({ ...formData, fitnessLevel: level.id })}
+                          className={`p-6 rounded-xl border-2 transition text-left ${
+                            formData.fitnessLevel === level.id
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-200 hover:border-green-300'
+                          }`}
+                        >
+                          <div className="text-4xl mb-2">{level.icon}</div>
+                          <div className="font-semibold text-gray-900">{level.label}</div>
+                          <div className="text-sm text-gray-600">{level.description}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      What types of exercise do you do? (Select all that apply)
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {EXERCISE_TYPES.map((exercise) => (
+                        <motion.button
+                          key={exercise.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => toggleSelection('exerciseTypes', exercise.id)}
+                          className={`p-4 rounded-lg border-2 transition ${
+                            formData.exerciseTypes.includes(exercise.id)
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-200 hover:border-green-300'
+                          }`}
+                        >
+                          <div className="text-3xl mb-1">{exercise.icon}</div>
+                          <div className="text-sm font-medium text-gray-900">{exercise.label}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      What are your fitness goals? (Select all that apply)
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {FITNESS_GOALS.map((goal) => (
+                        <motion.button
+                          key={goal.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => toggleSelection('fitnessGoals', goal.id)}
+                          className={`p-4 rounded-lg border-2 transition ${
+                            formData.fitnessGoals.includes(goal.id)
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-200 hover:border-green-300'
+                          }`}
+                        >
+                          <div className="text-3xl mb-1">{goal.icon}</div>
+                          <div className="text-sm font-medium text-gray-900">{goal.label}</div>
+                        </motion.button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
