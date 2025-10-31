@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -183,13 +183,20 @@ const HOUSEHOLD_TYPES = [
 ];
 
 export default function Onboarding() {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(() => {
+    // Load saved step from localStorage
+    const saved = localStorage.getItem('onboarding_step');
+    return saved ? parseInt(saved) : 0;
+  });
   const [loading, setLoading] = useState(false);
   const [showSkipModal, setShowSkipModal] = useState(false);
   const { currentUser, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => {
+    // Load saved form data from localStorage
+    const saved = localStorage.getItem('onboarding_data');
+    return saved ? JSON.parse(saved) : {
     // Personal
     age: '',
     householdSize: 1,
@@ -247,10 +254,21 @@ export default function Onboarding() {
     
     // Notes
     additionalNotes: ''
+    };
   });
 
   const step = STEPS[currentStep];
   const progress = ((currentStep + 1) / STEPS.length) * 100;
+
+  // Auto-save current step to localStorage
+  useEffect(() => {
+    localStorage.setItem('onboarding_step', currentStep.toString());
+  }, [currentStep]);
+
+  // Auto-save form data to localStorage
+  useEffect(() => {
+    localStorage.setItem('onboarding_data', JSON.stringify(formData));
+  }, [formData]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length - 1) {
@@ -383,6 +401,10 @@ export default function Onboarding() {
       
       // Small delay to ensure state updates
       await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Clear localStorage after successful completion
+      localStorage.removeItem('onboarding_step');
+      localStorage.removeItem('onboarding_data');
       
       toast.success('Welcome to your vegan journey! 🌱');
       navigate('/dashboard');
