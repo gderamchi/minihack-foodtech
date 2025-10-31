@@ -22,8 +22,11 @@ export default function ProtectedRoute({ children, requireOnboarding = false }) 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Check if onboarding is completed (handle both nested and flat structures)
+  const onboardingCompleted = userProfile?.onboardingCompleted || userProfile?.user?.onboardingCompleted;
+
   // If onboarding is required and not completed, redirect to onboarding
-  if (requireOnboarding && userProfile && !userProfile.user?.onboardingCompleted) {
+  if (requireOnboarding && !onboardingCompleted) {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -32,7 +35,7 @@ export default function ProtectedRoute({ children, requireOnboarding = false }) 
   const searchParams = new URLSearchParams(location.search);
   const isRetaking = searchParams.get('retake') === 'true';
   
-  if (location.pathname === '/onboarding' && userProfile?.user?.onboardingCompleted && !isRetaking) {
+  if (location.pathname === '/onboarding' && onboardingCompleted && !isRetaking) {
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { FcGoogle } from 'react-icons/fc';
 import { AiOutlineMail, AiOutlineLock, AiOutlineUser } from 'react-icons/ai';
+import { toast } from 'react-toastify';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -14,7 +15,7 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp, signInWithGoogle } = useAuth();
+  const { signUp, signInWithGoogle, userProfile } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -54,11 +55,16 @@ export default function Register() {
 
     try {
       await signUp(formData.email, formData.password, formData.name);
+      // Navigate to onboarding for new users
       navigate('/onboarding');
     } catch (err) {
       console.error('Registration error:', err);
       if (err.code === 'auth/email-already-in-use') {
-        setError('This email is already registered. Please login instead.');
+        // Redirect to login with message
+        toast.info('This email is already registered. Please login instead.');
+        setTimeout(() => {
+          navigate('/login', { state: { email: formData.email, message: 'Account already exists. Please login.' } });
+        }, 1500);
       } else if (err.code === 'auth/invalid-email') {
         setError('Invalid email address');
       } else if (err.code === 'auth/weak-password') {
@@ -76,8 +82,18 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await signInWithGoogle();
-      navigate('/onboarding');
+      const user = await signInWithGoogle();
+      
+      // Small delay to let userProfile load
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check if user already completed onboarding
+      if (userProfile?.onboardingCompleted) {
+        toast.success('Welcome back! 🌱');
+        navigate('/dashboard');
+      } else {
+        navigate('/onboarding');
+      }
     } catch (err) {
       console.error('Google sign-in error:', err);
       setError(err.message || 'Failed to sign in with Google');

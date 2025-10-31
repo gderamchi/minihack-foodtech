@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaGoogle, FaEnvelope, FaLock, FaLeaf } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -7,19 +7,37 @@ import { useAuth } from '../context/AuthContext';
 
 function Login() {
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle } = useAuth();
+  const location = useLocation();
+  const { signIn, signInWithGoogle, userProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    email: location.state?.email || '',
     password: ''
   });
+
+  // Show message from registration if redirected
+  useEffect(() => {
+    if (location.state?.message) {
+      toast.info(location.state.message);
+    }
+  }, [location.state]);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
       await signInWithGoogle();
-      toast.success('Welcome back!');
-      navigate('/onboarding');
+      
+      // Small delay to let userProfile load
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check if user already completed onboarding
+      if (userProfile?.onboardingCompleted) {
+        toast.success('Welcome back! 🌱');
+        navigate('/dashboard');
+      } else {
+        toast.success('Welcome! Let\'s set up your profile.');
+        navigate('/onboarding');
+      }
     } catch (error) {
       console.error('Google sign-in error:', error);
       toast.error('Failed to sign in with Google');
@@ -34,8 +52,18 @@ function Login() {
 
     try {
       await signIn(formData.email, formData.password);
-      toast.success('Welcome back!');
-      navigate('/onboarding');
+      
+      // Small delay to let userProfile load
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Check if user already completed onboarding
+      if (userProfile?.onboardingCompleted) {
+        toast.success('Welcome back! 🌱');
+        navigate('/dashboard');
+      } else {
+        toast.success('Welcome! Let\'s set up your profile.');
+        navigate('/onboarding');
+      }
     } catch (error) {
       console.error('Email sign-in error:', error);
       if (error.code === 'auth/user-not-found') {
