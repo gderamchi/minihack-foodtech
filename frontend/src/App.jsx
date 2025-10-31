@@ -22,6 +22,7 @@ import WeeklyMenuView from './pages/WeeklyMenuView';
 import MenuTemplates from './pages/MenuTemplates';
 import ShoppingList from './pages/ShoppingList';
 import Profile from './pages/Profile';
+import ProfileDashboard from './pages/ProfileDashboard';
 
 function Navigation() {
   const { currentUser, userProfile, signOut } = useAuth();
@@ -192,6 +193,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile-dashboard"
+                element={
+                  <ProtectedRoute requireOnboarding={true}>
+                    <ProfileDashboard />
                   </ProtectedRoute>
                 }
               />
