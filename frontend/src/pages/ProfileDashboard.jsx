@@ -169,7 +169,7 @@ export default function ProfileDashboard() {
         </div>
 
         {/* Profile Sections */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Profile Details</h2>
           
           {/* Personal Information */}
@@ -425,6 +425,135 @@ export default function ProfileDashboard() {
                 </div>
               </div>
             )}
+          </ProfileSection>
+
+          {/* Cooking & Equipment */}
+          <ProfileSection
+            title="Cooking & Equipment"
+            icon="👨‍🍳"
+            onSave={() => handleSaveSection({
+              cookingSkills: formData.cookingSkills,
+              kitchenEquipment: formData.kitchenEquipment,
+              timeAvailable: formData.timeAvailable
+            })}
+          >
+            {(isEditing) => (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Cooking Skills</label>
+                  <p className="text-gray-900">{userProfile?.cookingSkills || 'Not set'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Kitchen Equipment</label>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile?.kitchenEquipment?.map((equipment) => (
+                      <span key={equipment} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                        {equipment}
+                      </span>
+                    )) || <p className="text-gray-500">Not set</p>}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Time Available for Cooking</label>
+                  <p className="text-gray-900">{userProfile?.timeAvailable || 'Not set'}</p>
+                </div>
+              </div>
+            )}
+          </ProfileSection>
+
+          {/* Meal Planning & Budget */}
+          <ProfileSection
+            title="Meal Planning & Budget"
+            icon="💰"
+            onSave={() => handleSaveSection({
+              budgetPerWeek: formData.budgetPerWeek,
+              shoppingFrequency: formData.shoppingFrequency,
+              mealPlanningStyle: formData.mealPlanningStyle
+            })}
+          >
+            {(isEditing) => (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Weekly Budget</label>
+                  <p className="text-gray-900">{userProfile?.budgetPerWeek ? `$${userProfile.budgetPerWeek}` : 'Not set'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Shopping Frequency</label>
+                  <p className="text-gray-900">{userProfile?.shoppingFrequency || 'Not set'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Planning Style</label>
+                  <p className="text-gray-900">{userProfile?.mealPlanningStyle || 'Not set'}</p>
+                </div>
+              </div>
+            )}
+          </ProfileSection>
+
+          {/* Location & Additional Notes */}
+          <ProfileSection
+            title="Location & Additional Notes"
+            icon="📍"
+            onSave={() => handleSaveSection({
+              location: formData.location,
+              additionalNotes: formData.additionalNotes
+            })}
+          >
+            {(isEditing) => (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <p className="text-gray-900">{userProfile?.location || 'Not set'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+                  <p className="text-gray-900">{userProfile?.additionalNotes || 'No additional notes'}</p>
+                </div>
+              </div>
+            )}
+          </ProfileSection>
+        </div>
+
+        {/* Account Settings */}
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h2>
+
+          <ProfileSection
+            title="Account Management"
+            icon="⚙️"
+            editable={false}
+          >
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h3 className="font-medium text-gray-900">Delete Account</h3>
+                  <p className="text-sm text-gray-600">Permanently delete your account and all data</p>
+                </div>
+                <button
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                      console.log('Account deletion requested');
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                >
+                  Delete Account
+                </button>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h3 className="font-medium text-gray-900">Export Data</h3>
+                  <p className="text-sm text-gray-600">Download all your profile data</p>
+                </div>
+                <button
+                  onClick={() => {
+                    console.log('Data export requested');
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  Export Data
+                </button>
+              </div>
+            </div>
           </ProfileSection>
         </div>
       </div>
