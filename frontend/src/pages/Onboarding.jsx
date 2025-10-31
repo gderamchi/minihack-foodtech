@@ -391,62 +391,65 @@ export default function Onboarding() {
     try {
       const token = await currentUser.getIdToken();
       
-      // Save comprehensive onboarding data
+      // Save comprehensive onboarding data as FLAT structure
       await usersAPI.saveOnboardingStep(
         token,
         currentUser.uid,
         20,
         {
-          personal: {
-            age: formData.age,
-            householdSize: formData.householdSize,
-            householdType: formData.householdType
-          },
-          veganJourney: {
-            duration: formData.veganDuration,
-            motivations: formData.motivations
-          },
-          health: {
-            conditions: formData.healthConditions,
-            isPregnant: formData.isPregnant,
-            isBreastfeeding: formData.isBreastfeeding
-          },
-          fitness: {
-            level: formData.fitnessLevel,
-            exerciseTypes: formData.exerciseTypes,
-            goals: formData.fitnessGoals
-          },
-          dietary: {
-            goals: formData.goals,
-            restrictions: formData.restrictions,
-            allergies: formData.allergies
-          },
-          foodPreferences: {
-            favoriteCuisines: formData.favoriteCuisines,
-            dislikedIngredients: formData.dislikedIngredients.split(',').map(i => i.trim()).filter(Boolean),
-            preferredIngredients: formData.preferredIngredients.split(',').map(i => i.trim()).filter(Boolean),
-            spiceTolerance: formData.spiceTolerance,
-            texturePreferences: formData.texturePreferences,
-            flavorProfiles: formData.flavorProfiles
-          },
-          cooking: {
-            skillLevel: formData.cookingLevel,
-            timeAvailable: formData.timeAvailable,
-            equipment: formData.equipment
-          },
-          mealPlanning: {
-            mealPreferences: formData.mealPreferences,
-            mealsPerDay: formData.mealsPerDay
-          },
-          health: {
-            primaryGoal: formData.primaryHealthGoal,
-            calorieTarget: formData.calorieTarget
-          },
-          budget: {
-            level: formData.budget,
-            shoppingFrequency: formData.shoppingFrequency
-          },
+          // Personal
+          age: formData.age,
+          householdSize: formData.householdSize,
+          householdType: formData.householdType,
+          
+          // Vegan Journey
+          veganDuration: formData.veganDuration,
+          motivations: formData.motivations,
+          
+          // Health
+          healthConditions: formData.healthConditions,
+          isPregnant: formData.isPregnant,
+          isBreastfeeding: formData.isBreastfeeding,
+          
+          // Fitness
+          fitnessLevel: formData.fitnessLevel,
+          exerciseTypes: formData.exerciseTypes,
+          fitnessGoals: formData.fitnessGoals,
+          
+          // Dietary
+          goals: formData.goals,
+          restrictions: formData.restrictions,
+          allergies: formData.allergies,
+          
+          // Food Preferences
+          favoriteCuisines: formData.favoriteCuisines,
+          dislikedIngredients: formData.dislikedIngredients.split(',').map(i => i.trim()).filter(Boolean),
+          preferredIngredients: formData.preferredIngredients.split(',').map(i => i.trim()).filter(Boolean),
+          spiceTolerance: formData.spiceTolerance,
+          texturePreferences: formData.texturePreferences,
+          flavorProfiles: formData.flavorProfiles,
+          
+          // Cooking
+          cookingLevel: formData.cookingLevel,
+          timeAvailable: formData.timeAvailable,
+          equipment: formData.equipment,
+          
+          // Meal Planning
+          mealPreferences: formData.mealPreferences,
+          mealsPerDay: formData.mealsPerDay,
+          
+          // Health Goals
+          primaryHealthGoal: formData.primaryHealthGoal,
+          calorieTarget: formData.calorieTarget,
+          
+          // Budget
+          budget: formData.budget,
+          shoppingFrequency: formData.shoppingFrequency,
+          
+          // Location
           location: formData.location,
+          
+          // Notes
           additionalNotes: formData.additionalNotes
         }
       );
