@@ -30,18 +30,25 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(user);
       
       if (user) {
-        // Create or update user in backend
         try {
           const token = await user.getIdToken();
-          await usersAPI.createOrUpdate({
-            firebaseUid: user.uid,
-            email: user.email,
-            name: user.displayName || user.email.split('@')[0]
-          }, token);
-
-          // Fetch user profile from backend
-          const profile = await usersAPI.getProfile(token, user.uid);
-          setUserProfile(profile.data);
+          
+          // First, try to fetch existing profile
+          try {
+            const profile = await usersAPI.getProfile(token, user.uid);
+            setUserProfile(profile.data);
+          } catch (profileError) {
+            // If profile doesn't exist (404), user needs to register
+            if (profileError.response?.status === 404) {
+              console.log('User not found in database - needs registration');
+              setUserProfile(null);
+              // Don't create user automatically - let them go through registration
+            } else {
+              // Other errors
+              console.error('Error fetching profile:', profileError);
+              setUserProfile(null);
+            }
+          }
         } catch (error) {
           console.error('Error syncing user:', error);
           setUserProfile(null);
@@ -85,13 +92,29 @@ export const AuthProvider = ({ children }) => {
   const signInWithGoogle = async () => {
     const result = await signInWithPopup(auth, googleProvider);
     
-    // Create or update user in backend
     const token = await result.user.getIdToken();
-    await usersAPI.createOrUpdate({
-      firebaseUid: result.user.uid,
-      email: result.user.email,
-      name: result.user.displayName || result.user.email.split('@')[0]
-    }, token);
+    
+    // Check if user exists in database
+    try {
+      const profile = await usersAPI.getProfile(token, result.user.uid);
+      // User exists, update profile state
+      setUserProfile(profile.data);
+    } catch (error) {
+      if (error.response?.status === 404) {
+        // User doesn't exist - create new user
+        await usersAPI.createOrUpdate({
+          firebaseUid: result.user.uid,
+          email: result.user.email,
+          name: result.user.displayName || result.user.email.split('@')[0]
+        }, token);
+        
+        // Fetch the newly created profile
+        const newProfile = await usersAPI.getProfile(token, result.user.uid);
+        setUserProfile(newProfile.data);
+      } else {
+        throw error;
+      }
+    }
 
     return result.user;
   };
