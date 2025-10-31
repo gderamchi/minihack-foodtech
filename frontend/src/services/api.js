@@ -75,10 +75,7 @@ export const usersAPI = {
     params: { firebaseUid },
     headers: { Authorization: `Bearer ${token}` }
   }),
-  updateProfile: (token, firebaseUid, data) => api.put('/users/update-profile', {
-    firebaseUid,
-    ...data
-  }, {
+  updateProfile: (token, data) => api.put('/users/update-profile', data, {
     headers: { Authorization: `Bearer ${token}` }
   }),
   updateLocation: (data) => api.put('/users/me/location', data),
