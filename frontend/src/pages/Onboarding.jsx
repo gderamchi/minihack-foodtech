@@ -9,20 +9,21 @@ const STEPS = [
   { id: 1, title: 'Welcome! 🌱', subtitle: "Let's personalize your vegan journey", type: 'welcome' },
   { id: 2, title: 'Personal Info', subtitle: 'Tell us about yourself', type: 'personal' },
   { id: 3, title: 'Your Household', subtitle: 'Who are you cooking for?', type: 'household' },
-  { id: 4, title: 'Dietary Goals', subtitle: 'What brings you to plant-based eating?', type: 'goals' },
-  { id: 5, title: 'Dietary Restrictions', subtitle: 'Any restrictions?', type: 'restrictions' },
-  { id: 6, title: 'Food Allergies', subtitle: 'What should we avoid?', type: 'allergies' },
-  { id: 7, title: 'Favorite Cuisines', subtitle: 'What flavors do you love?', type: 'cuisines' },
-  { id: 8, title: 'Ingredient Preferences', subtitle: 'Likes and dislikes', type: 'ingredients' },
-  { id: 9, title: 'Texture & Flavor', subtitle: 'How do you like your food?', type: 'textures' },
-  { id: 10, title: 'Cooking Skills', subtitle: 'Your kitchen experience', type: 'cookingLevel' },
-  { id: 11, title: 'Kitchen Equipment', subtitle: 'What tools do you have?', type: 'equipment' },
-  { id: 12, title: 'Meal Planning', subtitle: 'Your eating habits', type: 'mealPreferences' },
-  { id: 13, title: 'Health Goals', subtitle: 'What are you aiming for?', type: 'health' },
-  { id: 14, title: 'Budget & Shopping', subtitle: 'Your preferences', type: 'budget' },
-  { id: 15, title: 'Your Location', subtitle: 'Find stores near you', type: 'location' },
-  { id: 16, title: 'Additional Notes', subtitle: 'Anything else?', type: 'notes' },
-  { id: 17, title: 'All Set! 🎉', subtitle: 'Your personalized plan is ready', type: 'complete' }
+  { id: 4, title: 'Your Vegan Journey', subtitle: 'Where are you in your transition?', type: 'veganJourney' },
+  { id: 5, title: 'Dietary Goals', subtitle: 'What brings you to plant-based eating?', type: 'goals' },
+  { id: 6, title: 'Dietary Restrictions', subtitle: 'Any restrictions?', type: 'restrictions' },
+  { id: 7, title: 'Food Allergies', subtitle: 'What should we avoid?', type: 'allergies' },
+  { id: 8, title: 'Favorite Cuisines', subtitle: 'What flavors do you love?', type: 'cuisines' },
+  { id: 9, title: 'Ingredient Preferences', subtitle: 'Likes and dislikes', type: 'ingredients' },
+  { id: 10, title: 'Texture & Flavor', subtitle: 'How do you like your food?', type: 'textures' },
+  { id: 11, title: 'Cooking Skills', subtitle: 'Your kitchen experience', type: 'cookingLevel' },
+  { id: 12, title: 'Kitchen Equipment', subtitle: 'What tools do you have?', type: 'equipment' },
+  { id: 13, title: 'Meal Planning', subtitle: 'Your eating habits', type: 'mealPreferences' },
+  { id: 14, title: 'Health Goals', subtitle: 'What are you aiming for?', type: 'health' },
+  { id: 15, title: 'Budget & Shopping', subtitle: 'Your preferences', type: 'budget' },
+  { id: 16, title: 'Your Location', subtitle: 'Find stores near you', type: 'location' },
+  { id: 17, title: 'Additional Notes', subtitle: 'Anything else?', type: 'notes' },
+  { id: 18, title: 'All Set! 🎉', subtitle: 'Your personalized plan is ready', type: 'complete' }
 ];
 
 const DIETARY_GOALS = [
@@ -32,6 +33,23 @@ const DIETARY_GOALS = [
   { id: 'weight', label: 'Weight Management', icon: '⚖️', description: 'Healthy weight goals' },
   { id: 'energy', label: 'More Energy', icon: '⚡', description: 'Boost daily energy' },
   { id: 'curious', label: 'Just Curious', icon: '🤔', description: 'Exploring options' }
+];
+
+const VEGAN_DURATIONS = [
+  { id: 'just-starting', label: 'Just Starting', icon: '🌱', description: 'Brand new to veganism' },
+  { id: '<6months', label: 'Less than 6 months', icon: '🌿', description: 'Still learning' },
+  { id: '6-12months', label: '6-12 months', icon: '🌳', description: 'Getting comfortable' },
+  { id: '1-2years', label: '1-2 years', icon: '🌲', description: 'Experienced' },
+  { id: '2+years', label: '2+ years', icon: '🏆', description: 'Vegan veteran' }
+];
+
+const MOTIVATIONS = [
+  { id: 'health', label: 'Health', icon: '💪', description: 'Better wellness' },
+  { id: 'environment', label: 'Environment', icon: '🌍', description: 'Save the planet' },
+  { id: 'animal-welfare', label: 'Animal Welfare', icon: '🐮', description: 'Ethical choice' },
+  { id: 'religious', label: 'Religious/Spiritual', icon: '🙏', description: 'Faith-based' },
+  { id: 'cost', label: 'Cost Savings', icon: '💰', description: 'Budget-friendly' },
+  { id: 'other', label: 'Other', icon: '🤔', description: 'Different reason' }
 ];
 
 const RESTRICTIONS = [
@@ -135,6 +153,10 @@ export default function Onboarding() {
     householdSize: 1,
     householdType: '',
     
+    // Vegan Journey
+    veganDuration: '',
+    motivations: [],
+    
     // Dietary
     goals: [],
     restrictions: [],
@@ -233,12 +255,16 @@ export default function Onboarding() {
       await usersAPI.saveOnboardingStep(
         token,
         currentUser.uid,
-        17,
+        18,
         {
           personal: {
             age: formData.age,
             householdSize: formData.householdSize,
             householdType: formData.householdType
+          },
+          veganJourney: {
+            duration: formData.veganDuration,
+            motivations: formData.motivations
           },
           dietary: {
             goals: formData.goals,
@@ -302,6 +328,8 @@ export default function Onboarding() {
         return formData.age !== '';
       case 'household':
         return formData.householdType !== '';
+      case 'veganJourney':
+        return formData.veganDuration !== '' && formData.motivations.length > 0;
       case 'goals':
         return formData.goals.length > 0;
       case 'restrictions':
@@ -460,6 +488,60 @@ export default function Onboarding() {
                       />
                     </div>
                   )}
+                </div>
+              )}
+
+              {step.type === 'veganJourney' && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      How long have you been vegan/plant-based?
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {VEGAN_DURATIONS.map((duration) => (
+                        <motion.button
+                          key={duration.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setFormData({ ...formData, veganDuration: duration.id })}
+                          className={`p-6 rounded-xl border-2 transition text-left ${
+                            formData.veganDuration === duration.id
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-200 hover:border-green-300'
+                          }`}
+                        >
+                          <div className="text-4xl mb-2">{duration.icon}</div>
+                          <div className="font-semibold text-gray-900">{duration.label}</div>
+                          <div className="text-sm text-gray-600">{duration.description}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      What motivated you to go vegan? (Select all that apply)
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {MOTIVATIONS.map((motivation) => (
+                        <motion.button
+                          key={motivation.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => toggleSelection('motivations', motivation.id)}
+                          className={`p-4 rounded-lg border-2 transition ${
+                            formData.motivations.includes(motivation.id)
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-200 hover:border-green-300'
+                          }`}
+                        >
+                          <div className="text-3xl mb-1">{motivation.icon}</div>
+                          <div className="text-sm font-medium text-gray-900">{motivation.label}</div>
+                          <div className="text-xs text-gray-600">{motivation.description}</div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
