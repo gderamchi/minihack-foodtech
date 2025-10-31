@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
 import { debounce } from '../utils/debounce';
 
 export default function ProfileDashboard() {
-  const { currentUser, userProfile, refreshProfile } = useAuth();
+  const { currentUser, userProfile, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -602,9 +602,18 @@ export default function ProfileDashboard() {
                   <p className="text-xs sm:text-sm text-gray-600">Permanently delete your account and all data</p>
                 </div>
                 <button
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                      console.log('Account deletion requested');
+                  onClick={async () => {
+                    if (window.confirm('⚠️ WARNING: This will permanently delete your account and all data. This action CANNOT be undone. Are you absolutely sure?')) {
+                      try {
+                        const token = await currentUser.getIdToken();
+                        await usersAPI.deleteAccount(token, currentUser.uid);
+                        toast.success('Account deleted successfully');
+                        await signOut();
+                        navigate('/');
+                      } catch (error) {
+                        console.error('Error deleting account:', error);
+                        toast.error('Failed to delete account. Please try again.');
+                      }
                     }
                   }}
                   className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition focus:outline-none focus:ring-4 focus:ring-red-300"
@@ -620,7 +629,17 @@ export default function ProfileDashboard() {
                 </div>
                 <button
                   onClick={() => {
-                    console.log('Data export requested');
+                    const dataStr = JSON.stringify(userProfile, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `vegan-diet-profile-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    toast.success('Profile data exported successfully!');
                   }}
                   className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition focus:outline-none focus:ring-4 focus:ring-blue-300"
                   aria-label="Export your profile data"
