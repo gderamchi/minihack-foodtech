@@ -96,7 +96,6 @@ async function handleGenerate(req, res) {
   const client = await connectToDatabase();
   const db = client.db('vegan-diet-app');
   const usersCollection = db.collection('users');
-  const dishesCollection = db.collection('dishes');
   const weeklyMenusCollection = db.collection('weeklymenus');
 
   const user = await usersCollection.findOne({ firebaseUid });
@@ -104,22 +103,131 @@ async function handleGenerate(req, res) {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  const dishes = await dishesCollection.find({ isVegan: true }).limit(21).toArray();
-
+  // Generate AI-powered meals using Blackbox API
+  const axios = require('axios');
+  const BLACKBOX_API_KEY = process.env.BLACKBOX_API_KEY;
+  
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const mealTypes = ['breakfast', 'lunch', 'dinner'];
+  
   const weeklyMenu = {
     userId: firebaseUid,
-    startDate: new Date(),
-    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    days: Array.from({ length: 7 }, (_, i) => ({
-      date: new Date(Date.now() + i * 24 * 60 * 60 * 1000),
-      meals: [
-        { type: 'breakfast', dish: dishes[i * 3] },
-        { type: 'lunch', dish: dishes[i * 3 + 1] },
-        { type: 'dinner', dish: dishes[i * 3 + 2] }
-      ]
-    })),
+    weekStart: new Date(),
+    weekEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    menu: {},
+    nutritionSummary: {
+      daily: {
+        calories: 2000,
+        protein: 60,
+        carbs: 250,
+        fat: 65,
+        fiber: 30
+      }
+    },
     createdAt: new Date()
   };
+
+  // Generate meals for each day
+  for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
+    const dayKey = days[dayIndex].toLowerCase();
+    weeklyMenu.menu[dayKey] = {};
+    
+    for (const mealType of mealTypes) {
+      try {
+        // Create prompt for AI
+        const prompt = `Generate a delicious vegan ${mealType} recipe. Return ONLY a JSON object with this exact structure (no markdown, no extra text):
+{
+  "name": "Recipe Name",
+  "description": "Brief description",
+  "prepTime": 15,
+  "cookTime": 20,
+  "servings": 2,
+  "difficulty": "Easy",
+  "calories": 400,
+  "protein": 15,
+  "carbs": 50,
+  "fat": 12,
+  "fiber": 8,
+  "ingredients": [
+    {"name": "ingredient 1", "quantity": "1 cup", "category": "vegetables"},
+    {"name": "ingredient 2", "quantity": "2 tbsp", "category": "grains"}
+  ],
+  "instructions": [
+    "Step 1",
+    "Step 2"
+  ],
+  "tags": ["vegan", "healthy"],
+  "cuisine": "International"
+}`;
+
+        const response = await axios.post(
+          'https://api.blackbox.ai/v1/chat/completions',
+          {
+            model: 'blackboxai',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.7,
+            max_tokens: 1000
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${BLACKBOX_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 30000
+          }
+        );
+
+        let recipeText = response.data.choices[0].message.content.trim();
+        
+        // Clean up the response - remove markdown code blocks if present
+        recipeText = recipeText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        
+        // Parse the JSON
+        const recipe = JSON.parse(recipeText);
+        
+        // Add to menu
+        weeklyMenu.menu[dayKey][mealType] = {
+          _id: new ObjectId(),
+          ...recipe,
+          isVegan: true,
+          mealType: mealType
+        };
+        
+      } catch (error) {
+        console.error(`Error generating ${mealType} for ${dayKey}:`, error.message);
+        
+        // Fallback meal if AI fails
+        weeklyMenu.menu[dayKey][mealType] = {
+          _id: new ObjectId(),
+          name: `Vegan ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}`,
+          description: `A delicious vegan ${mealType}`,
+          prepTime: 15,
+          cookTime: 20,
+          servings: 2,
+          difficulty: 'Easy',
+          calories: mealType === 'breakfast' ? 350 : mealType === 'lunch' ? 500 : 600,
+          protein: 15,
+          carbs: 50,
+          fat: 12,
+          fiber: 8,
+          ingredients: [
+            { name: 'Mixed vegetables', quantity: '2 cups', category: 'vegetables' },
+            { name: 'Whole grains', quantity: '1 cup', category: 'grains' },
+            { name: 'Plant protein', quantity: '1/2 cup', category: 'protein' }
+          ],
+          instructions: [
+            'Prepare ingredients',
+            'Cook according to preference',
+            'Season and serve'
+          ],
+          tags: ['vegan', 'healthy'],
+          cuisine: 'International',
+          isVegan: true,
+          mealType: mealType
+        };
+      }
+    }
+  }
 
   const result = await weeklyMenusCollection.insertOne(weeklyMenu);
   weeklyMenu._id = result.insertedId;
