@@ -103,11 +103,11 @@ async function handleGenerate(req, res) {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  // Use Claude Sonnet 4.5 to generate personalized meals
-  const Anthropic = require('@anthropic-ai/sdk');
-  const anthropic = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  });
+  // Use Blackbox AI with Claude Sonnet 4.5 to generate personalized meals
+  const axios = require('axios');
+  const blackboxApiKey = process.env.BLACKBOX_API_KEY;
+  const blackboxApiUrl = process.env.BLACKBOX_API_URL || 'https://api.blackbox.ai/chat/completions';
+  const model = 'blackboxai/anthropic/claude-sonnet-4.5';
 
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const mealTypes = ['breakfast', 'lunch', 'dinner'];
@@ -182,16 +182,33 @@ Return ONLY a valid JSON object (no markdown, no code blocks) with this exact st
   "cuisine": "International"
 }`;
 
-        const message = await anthropic.messages.create({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          messages: [{
-            role: 'user',
-            content: prompt
-          }]
-        });
+        const response = await axios.post(
+          blackboxApiUrl,
+          {
+            model: model,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a professional vegan chef and nutritionist. Create delicious, nutritious vegan recipes with complete details.'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000,
+            stream: false
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${blackboxApiKey}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
 
-        const responseText = message.content[0].text.trim();
+        const responseText = response.data.choices[0].message.content.trim();
         
         // Clean up response - remove markdown if present
         let cleanedText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -202,7 +219,21 @@ Return ONLY a valid JSON object (no markdown, no code blocks) with this exact st
         // Add to menu
         weeklyMenu.menu[day][mealType] = {
           _id: new ObjectId(),
-          ...recipe,
+          name: recipe.name,
+          description: recipe.description,
+          prepTime: parseInt(recipe.prepTime) || 15,
+          cookTime: parseInt(recipe.cookTime) || 20,
+          servings: parseInt(recipe.servings) || 2,
+          difficulty: recipe.difficulty || 'Easy',
+          calories: parseInt(recipe.calories) || 400,
+          protein: parseInt(recipe.protein) || 15,
+          carbs: parseInt(recipe.carbs) || 50,
+          fat: parseInt(recipe.fat) || 12,
+          fiber: parseInt(recipe.fiber) || 8,
+          ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+          instructions: Array.isArray(recipe.instructions) ? recipe.instructions : [],
+          tags: Array.isArray(recipe.tags) ? recipe.tags : ['vegan', 'healthy'],
+          cuisine: recipe.cuisine || 'International',
           isVegan: true,
           mealType: mealType
         };
@@ -210,7 +241,7 @@ Return ONLY a valid JSON object (no markdown, no code blocks) with this exact st
       } catch (error) {
         console.error(`Error generating ${mealType} for ${day}:`, error.message);
         
-        // Fallback meal if Claude fails
+        // Fallback meal if API fails
         weeklyMenu.menu[day][mealType] = {
           _id: new ObjectId(),
           name: `Vegan ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}`,
