@@ -103,181 +103,11 @@ async function handleGenerate(req, res) {
     return res.status(404).json({ error: 'User not found' });
   }
 
-  // Pre-defined vegan meal templates (fast generation, no API calls)
-  const mealTemplates = {
-    breakfast: [
-      {
-        name: 'Overnight Oats with Berries',
-        description: 'Creamy oats soaked overnight with fresh berries and almond milk',
-        prepTime: 10,
-        cookTime: 0,
-        servings: 2,
-        difficulty: 'Easy',
-        calories: 350,
-        protein: 12,
-        carbs: 58,
-        fat: 8,
-        fiber: 10,
-        ingredients: [
-          { name: 'Rolled oats', quantity: '1 cup', category: 'grains' },
-          { name: 'Almond milk', quantity: '1.5 cups', category: 'dairy-alternatives' },
-          { name: 'Mixed berries', quantity: '1 cup', category: 'fruits' },
-          { name: 'Chia seeds', quantity: '2 tbsp', category: 'seeds' },
-          { name: 'Maple syrup', quantity: '1 tbsp', category: 'sweeteners' }
-        ],
-        instructions: [
-          'Mix oats, almond milk, and chia seeds in a jar',
-          'Refrigerate overnight',
-          'Top with berries and maple syrup before serving'
-        ],
-        tags: ['vegan', 'healthy', 'no-cook'],
-        cuisine: 'International'
-      },
-      {
-        name: 'Avocado Toast with Tomatoes',
-        description: 'Whole grain toast topped with mashed avocado and fresh tomatoes',
-        prepTime: 5,
-        cookTime: 5,
-        servings: 2,
-        difficulty: 'Easy',
-        calories: 320,
-        protein: 10,
-        carbs: 42,
-        fat: 14,
-        fiber: 12,
-        ingredients: [
-          { name: 'Whole grain bread', quantity: '4 slices', category: 'grains' },
-          { name: 'Avocado', quantity: '2 medium', category: 'vegetables' },
-          { name: 'Cherry tomatoes', quantity: '1 cup', category: 'vegetables' },
-          { name: 'Lemon juice', quantity: '1 tbsp', category: 'condiments' },
-          { name: 'Salt and pepper', quantity: 'to taste', category: 'spices' }
-        ],
-        instructions: [
-          'Toast the bread',
-          'Mash avocados with lemon juice, salt, and pepper',
-          'Spread on toast and top with sliced tomatoes'
-        ],
-        tags: ['vegan', 'quick', 'healthy'],
-        cuisine: 'International'
-      }
-    ],
-    lunch: [
-      {
-        name: 'Buddha Bowl with Tahini Dressing',
-        description: 'Colorful bowl with quinoa, roasted vegetables, and creamy tahini',
-        prepTime: 15,
-        cookTime: 25,
-        servings: 2,
-        difficulty: 'Medium',
-        calories: 480,
-        protein: 18,
-        carbs: 62,
-        fat: 18,
-        fiber: 14,
-        ingredients: [
-          { name: 'Quinoa', quantity: '1 cup', category: 'grains' },
-          { name: 'Sweet potato', quantity: '1 large', category: 'vegetables' },
-          { name: 'Chickpeas', quantity: '1 can', category: 'protein' },
-          { name: 'Kale', quantity: '2 cups', category: 'vegetables' },
-          { name: 'Tahini', quantity: '3 tbsp', category: 'condiments' }
-        ],
-        instructions: [
-          'Cook quinoa according to package',
-          'Roast sweet potato and chickpeas at 400°F for 25 minutes',
-          'Massage kale with lemon juice',
-          'Assemble bowl and drizzle with tahini dressing'
-        ],
-        tags: ['vegan', 'nutritious', 'filling'],
-        cuisine: 'Mediterranean'
-      },
-      {
-        name: 'Veggie Wrap with Hummus',
-        description: 'Fresh vegetables wrapped in a whole wheat tortilla with creamy hummus',
-        prepTime: 10,
-        cookTime: 0,
-        servings: 2,
-        difficulty: 'Easy',
-        calories: 420,
-        protein: 15,
-        carbs: 58,
-        fat: 14,
-        fiber: 12,
-        ingredients: [
-          { name: 'Whole wheat tortillas', quantity: '2 large', category: 'grains' },
-          { name: 'Hummus', quantity: '1/2 cup', category: 'protein' },
-          { name: 'Mixed greens', quantity: '2 cups', category: 'vegetables' },
-          { name: 'Cucumber', quantity: '1 medium', category: 'vegetables' },
-          { name: 'Bell peppers', quantity: '1 cup', category: 'vegetables' }
-        ],
-        instructions: [
-          'Spread hummus on tortillas',
-          'Layer with greens, cucumber, and peppers',
-          'Roll tightly and slice in half'
-        ],
-        tags: ['vegan', 'quick', 'portable'],
-        cuisine: 'Mediterranean'
-      }
-    ],
-    dinner: [
-      {
-        name: 'Lentil Curry with Rice',
-        description: 'Aromatic curry with red lentils, coconut milk, and warming spices',
-        prepTime: 10,
-        cookTime: 30,
-        servings: 2,
-        difficulty: 'Medium',
-        calories: 520,
-        protein: 22,
-        carbs: 78,
-        fat: 14,
-        fiber: 16,
-        ingredients: [
-          { name: 'Red lentils', quantity: '1 cup', category: 'protein' },
-          { name: 'Coconut milk', quantity: '1 can', category: 'dairy-alternatives' },
-          { name: 'Curry powder', quantity: '2 tbsp', category: 'spices' },
-          { name: 'Brown rice', quantity: '1 cup', category: 'grains' },
-          { name: 'Spinach', quantity: '2 cups', category: 'vegetables' }
-        ],
-        instructions: [
-          'Cook rice according to package',
-          'Sauté curry powder in oil',
-          'Add lentils, coconut milk, and water',
-          'Simmer 20 minutes, add spinach',
-          'Serve over rice'
-        ],
-        tags: ['vegan', 'comfort-food', 'protein-rich'],
-        cuisine: 'Indian'
-      },
-      {
-        name: 'Pasta Primavera',
-        description: 'Whole wheat pasta with seasonal vegetables in garlic olive oil',
-        prepTime: 10,
-        cookTime: 20,
-        servings: 2,
-        difficulty: 'Easy',
-        calories: 480,
-        protein: 16,
-        carbs: 72,
-        fat: 14,
-        fiber: 12,
-        ingredients: [
-          { name: 'Whole wheat pasta', quantity: '8 oz', category: 'grains' },
-          { name: 'Broccoli', quantity: '2 cups', category: 'vegetables' },
-          { name: 'Cherry tomatoes', quantity: '1 cup', category: 'vegetables' },
-          { name: 'Garlic', quantity: '4 cloves', category: 'vegetables' },
-          { name: 'Olive oil', quantity: '3 tbsp', category: 'oils' }
-        ],
-        instructions: [
-          'Cook pasta according to package',
-          'Sauté garlic in olive oil',
-          'Add broccoli and tomatoes, cook until tender',
-          'Toss with pasta and season'
-        ],
-        tags: ['vegan', 'italian', 'family-friendly'],
-        cuisine: 'Italian'
-      }
-    ]
-  };
+  // Use Claude Sonnet 4.5 to generate personalized meals
+  const Anthropic = require('@anthropic-ai/sdk');
+  const anthropic = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+  });
 
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const mealTypes = ['breakfast', 'lunch', 'dinner'];
@@ -299,22 +129,117 @@ async function handleGenerate(req, res) {
     createdAt: new Date()
   };
 
-  // Generate meals for each day using templates
+  // Build user context from questionnaire data
+  const userContext = `
+User Profile:
+- Dietary preferences: ${user.preferences?.dietaryRestrictions?.join(', ') || 'None'}
+- Allergies: ${user.preferences?.allergies?.join(', ') || 'None'}
+- Favorite cuisines: ${user.preferences?.favoriteCuisines?.join(', ') || 'Various'}
+- Cooking skill: ${user.preferences?.cookingSkill || 'Intermediate'}
+- Time available: ${user.preferences?.cookingTime || '30-45 minutes'}
+- Health goals: ${user.preferences?.healthGoals?.join(', ') || 'General wellness'}
+- Budget: ${user.preferences?.budget || 'Moderate'}
+`;
+
+  // Generate meals one by one for each day
   for (const day of days) {
     weeklyMenu.menu[day] = {};
     
     for (const mealType of mealTypes) {
-      // Randomly select a template for variety
-      const templates = mealTemplates[mealType];
-      const randomIndex = Math.floor(Math.random() * templates.length);
-      const template = templates[randomIndex];
-      
-      weeklyMenu.menu[day][mealType] = {
-        _id: new ObjectId(),
-        ...template,
-        isVegan: true,
-        mealType: mealType
-      };
+      try {
+        const prompt = `You are a professional vegan chef and nutritionist. Generate a delicious, healthy vegan ${mealType} recipe personalized for this user.
+
+${userContext}
+
+Requirements:
+- Must be 100% vegan (no animal products)
+- Include complete nutritional information
+- Provide detailed ingredients with quantities
+- Include step-by-step cooking instructions
+- Consider user's preferences and restrictions
+
+Return ONLY a valid JSON object (no markdown, no code blocks) with this exact structure:
+{
+  "name": "Recipe Name",
+  "description": "Brief appetizing description",
+  "prepTime": 15,
+  "cookTime": 20,
+  "servings": 2,
+  "difficulty": "Easy",
+  "calories": 400,
+  "protein": 15,
+  "carbs": 50,
+  "fat": 12,
+  "fiber": 8,
+  "ingredients": [
+    {"name": "ingredient name", "quantity": "1 cup", "category": "vegetables"}
+  ],
+  "instructions": [
+    "Step 1",
+    "Step 2"
+  ],
+  "tags": ["vegan", "healthy"],
+  "cuisine": "International"
+}`;
+
+        const message = await anthropic.messages.create({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          messages: [{
+            role: 'user',
+            content: prompt
+          }]
+        });
+
+        const responseText = message.content[0].text.trim();
+        
+        // Clean up response - remove markdown if present
+        let cleanedText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        
+        // Parse the JSON
+        const recipe = JSON.parse(cleanedText);
+        
+        // Add to menu
+        weeklyMenu.menu[day][mealType] = {
+          _id: new ObjectId(),
+          ...recipe,
+          isVegan: true,
+          mealType: mealType
+        };
+        
+      } catch (error) {
+        console.error(`Error generating ${mealType} for ${day}:`, error.message);
+        
+        // Fallback meal if Claude fails
+        weeklyMenu.menu[day][mealType] = {
+          _id: new ObjectId(),
+          name: `Vegan ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}`,
+          description: `A delicious vegan ${mealType}`,
+          prepTime: 15,
+          cookTime: 20,
+          servings: 2,
+          difficulty: 'Easy',
+          calories: mealType === 'breakfast' ? 350 : mealType === 'lunch' ? 500 : 600,
+          protein: 15,
+          carbs: 50,
+          fat: 12,
+          fiber: 8,
+          ingredients: [
+            { name: 'Mixed vegetables', quantity: '2 cups', category: 'vegetables' },
+            { name: 'Whole grains', quantity: '1 cup', category: 'grains' },
+            { name: 'Plant protein', quantity: '1/2 cup', category: 'protein' }
+          ],
+          instructions: [
+            'Prepare ingredients',
+            'Cook according to preference',
+            'Season and serve'
+          ],
+          tags: ['vegan', 'healthy'],
+          cuisine: 'International',
+          isVegan: true,
+          mealType: mealType
+        };
+      }
     }
   }
 
