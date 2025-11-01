@@ -141,13 +141,10 @@ User Profile:
 - Budget: ${user.preferences?.budget || 'Moderate'}
 `;
 
-  // Generate meals one by one for each day
-  for (const day of days) {
-    weeklyMenu.menu[day] = {};
-    
-    for (const mealType of mealTypes) {
-      try {
-        const prompt = `You are a professional vegan chef and nutritionist. Generate a delicious, healthy vegan ${mealType} recipe personalized for this user.
+  // Generate all meals in parallel to avoid timeout (Vercel has 10s limit)
+  const generateMeal = async (day, mealType) => {
+    try {
+      const prompt = `You are a professional vegan chef and nutritionist. Generate a delicious, healthy vegan ${mealType} recipe personalized for this user.
 
 ${userContext}
 
@@ -182,42 +179,45 @@ Return ONLY a valid JSON object (no markdown, no code blocks) with this exact st
   "cuisine": "International"
 }`;
 
-        const response = await axios.post(
-          blackboxApiUrl,
-          {
-            model: model,
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a professional vegan chef and nutritionist. Create delicious, nutritious vegan recipes with complete details.'
-              },
-              {
-                role: 'user',
-                content: prompt
-              }
-            ],
-            temperature: 0.7,
-            max_tokens: 2000,
-            stream: false
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${blackboxApiKey}`,
-              'Content-Type': 'application/json'
+      const response = await axios.post(
+        blackboxApiUrl,
+        {
+          model: model,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a professional vegan chef and nutritionist. Create delicious, nutritious vegan recipes with complete details.'
+            },
+            {
+              role: 'user',
+              content: prompt
             }
-          }
-        );
+          ],
+          temperature: 0.7,
+          max_tokens: 2000,
+          stream: false
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${blackboxApiKey}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 8000 // 8 second timeout per request
+        }
+      );
 
-        const responseText = response.data.choices[0].message.content.trim();
-        
-        // Clean up response - remove markdown if present
-        let cleanedText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        
-        // Parse the JSON
-        const recipe = JSON.parse(cleanedText);
-        
-        // Add to menu
-        weeklyMenu.menu[day][mealType] = {
+      const responseText = response.data.choices[0].message.content.trim();
+      
+      // Clean up response - remove markdown if present
+      let cleanedText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      
+      // Parse the JSON
+      const recipe = JSON.parse(cleanedText);
+      
+      return {
+        day,
+        mealType,
+        meal: {
           _id: new ObjectId(),
           name: recipe.name,
           description: recipe.description,
@@ -236,13 +236,16 @@ Return ONLY a valid JSON object (no markdown, no code blocks) with this exact st
           cuisine: recipe.cuisine || 'International',
           isVegan: true,
           mealType: mealType
-        };
-        
-      } catch (error) {
-        console.error(`Error generating ${mealType} for ${day}:`, error.message);
-        
-        // Fallback meal if API fails
-        weeklyMenu.menu[day][mealType] = {
+        }
+      };
+    } catch (error) {
+      console.error(`Error generating ${mealType} for ${day}:`, error.message);
+      
+      // Fallback meal if API fails
+      return {
+        day,
+        mealType,
+        meal: {
           _id: new ObjectId(),
           name: `Vegan ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}`,
           description: `A delicious vegan ${mealType}`,
@@ -269,9 +272,29 @@ Return ONLY a valid JSON object (no markdown, no code blocks) with this exact st
           cuisine: 'International',
           isVegan: true,
           mealType: mealType
-        };
-      }
+        }
+      };
     }
+  };
+
+  // Create all meal generation promises
+  const mealPromises = [];
+  for (const day of days) {
+    for (const mealType of mealTypes) {
+      mealPromises.push(generateMeal(day, mealType));
+    }
+  }
+
+  // Generate all meals in parallel
+  const generatedMeals = await Promise.all(mealPromises);
+
+  // Organize meals by day
+  for (const day of days) {
+    weeklyMenu.menu[day] = {};
+  }
+
+  for (const { day, mealType, meal } of generatedMeals) {
+    weeklyMenu.menu[day][mealType] = meal;
   }
 
   const result = await weeklyMenusCollection.insertOne(weeklyMenu);
