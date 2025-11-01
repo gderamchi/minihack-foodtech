@@ -1,8 +1,10 @@
-# Claude Sonnet 4.5 Setup for Menu Generation
+# Claude Sonnet 4.5 Menu Generation - COMPLETE ✅
 
 ## ✅ What Was Implemented
 
-The menu generation now uses **Claude Sonnet 4.5** (Anthropic API) to generate **21 unique, personalized vegan recipes** based on user's questionnaire data.
+The menu generation now uses **Claude Sonnet 4.5** (via Blackbox AI API) to generate **21 unique, personalized vegan recipes** based on user's questionnaire data.
+
+**IMPORTANT:** Uses your existing BLACKBOX_API_KEY - no new API key needed!
 
 ### Features:
 - **Personalized recipes** based on user preferences from onboarding
@@ -15,36 +17,18 @@ The menu generation now uses **Claude Sonnet 4.5** (Anthropic API) to generate *
 
 ---
 
-## 🔑 Required: Add Anthropic API Key to Vercel
+## ✅ No Additional Setup Required!
 
-**IMPORTANT:** You must add your Anthropic API key to Vercel for this to work.
+**Good news:** This uses your existing `BLACKBOX_API_KEY` environment variable that's already configured in Vercel!
 
-### Step 1: Get Anthropic API Key
+The Blackbox AI API provides access to Claude Sonnet 4.5 through the model: `blackboxai/anthropic/claude-sonnet-4.5`
 
-1. Go to https://console.anthropic.com/
-2. Sign up or log in
-3. Navigate to "API Keys"
-4. Create a new API key
-5. Copy the key (starts with `sk-ant-...`)
+**Already configured:**
+- ✅ BLACKBOX_API_KEY (already in Vercel)
+- ✅ BLACKBOX_API_URL (defaults to https://api.blackbox.ai/chat/completions)
+- ✅ Model: blackboxai/anthropic/claude-sonnet-4.5
 
-### Step 2: Add to Vercel Environment Variables
-
-1. Go to https://vercel.com/dashboard
-2. Select your project: `minihack-foodtech`
-3. Go to **Settings** → **Environment Variables**
-4. Add new variable:
-   - **Name:** `ANTHROPIC_API_KEY`
-   - **Value:** Your API key (paste the `sk-ant-...` key)
-   - **Environment:** Select all (Production, Preview, Development)
-5. Click **Save**
-
-### Step 3: Redeploy
-
-After adding the environment variable:
-1. Go to **Deployments** tab
-2. Click the three dots (...) on the latest deployment
-3. Click **Redeploy**
-4. Wait 2-3 minutes for deployment to complete
+**Deployment:** Automatically deployed with commit 31c68cf
 
 ---
 
@@ -109,21 +93,20 @@ Claude returns a complete recipe with:
 ## 🔧 Technical Details
 
 ### API Used:
-- **Model:** `claude-sonnet-4-20250514` (Claude Sonnet 4.5)
+- **Provider:** Blackbox AI
+- **Model:** `blackboxai/anthropic/claude-sonnet-4.5` (Claude Sonnet 4.5)
 - **Max tokens:** 2000 per recipe
 - **Total API calls:** 21 per menu generation (sequential)
+- **API Key:** Uses existing BLACKBOX_API_KEY
 
 ### Code Location:
 - **File:** `api/weekly-menu.js`
 - **Function:** `handleGenerate()`
-- **Lines:** 105-247
+- **Lines:** 105-280
 
-### Dependencies Added:
-```json
-{
-  "@anthropic-ai/sdk": "^0.32.1"
-}
-```
+### Dependencies:
+- Uses existing `axios` (already installed)
+- No new dependencies needed!
 
 ---
 
@@ -131,12 +114,12 @@ Claude returns a complete recipe with:
 
 ### Issue: "No meals generated" or empty menu
 
-**Cause:** Missing or invalid ANTHROPIC_API_KEY
+**Cause:** Missing or invalid BLACKBOX_API_KEY
 
 **Solution:**
-1. Check Vercel environment variables
-2. Ensure key starts with `sk-ant-`
-3. Redeploy after adding key
+1. Check Vercel environment variables for BLACKBOX_API_KEY
+2. Verify key is valid
+3. Check Blackbox AI API status
 
 ### Issue: "Generation taking too long"
 
@@ -149,22 +132,23 @@ Claude returns a complete recipe with:
 
 ### Issue: "Some meals are fallback recipes"
 
-**Cause:** Claude API error for specific meals
+**Cause:** Blackbox API error for specific meals
 
 **Solution:**
 - Check Vercel logs for specific errors
-- Verify API key has sufficient credits
-- Check Anthropic API status
+- Verify BLACKBOX_API_KEY has sufficient credits
+- Check Blackbox AI API status
 
 ---
 
 ## 💰 Cost Estimation
 
-Based on Claude Sonnet 4.5 pricing:
+Based on Blackbox AI pricing for Claude Sonnet 4.5:
 - **Input:** ~500 tokens per meal × 21 meals = 10,500 tokens
 - **Output:** ~800 tokens per meal × 21 meals = 16,800 tokens
-- **Total cost per menu:** ~$0.10-0.15
+- **Total cost per menu:** ~$0.10-0.15 (varies by Blackbox pricing)
 - **Monthly cost (100 users, 1 menu/week):** ~$10-15
+- **Note:** Check your Blackbox AI plan for exact pricing
 
 ---
 
@@ -209,12 +193,15 @@ To verify it's working:
 
 If you encounter issues:
 1. Check Vercel logs for errors
-2. Verify ANTHROPIC_API_KEY is set correctly
+2. Verify BLACKBOX_API_KEY is set correctly in Vercel
 3. Ensure API key has sufficient credits
-4. Check Anthropic API status: https://status.anthropic.com/
+4. Check Blackbox AI API status
 
 ---
 
 **Status:** ✅ Implemented and deployed  
-**Commit:** e0cfcb4  
-**Next Step:** Add ANTHROPIC_API_KEY to Vercel environment variables
+**Commits:** 
+- e0cfcb4 - Initial Claude implementation
+- 31c68cf - Fixed to use Blackbox API (current)
+
+**Ready to use:** YES - Uses existing BLACKBOX_API_KEY!
