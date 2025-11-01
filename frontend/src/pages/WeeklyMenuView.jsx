@@ -81,20 +81,28 @@ export default function WeeklyMenuView() {
       setGenerating(true);
       const token = await currentUser.getIdToken();
       
-      toast.info('Generating your personalized weekly menu... This may take a minute!', {
+      toast.info('Generating your personalized weekly menu...', {
         autoClose: false,
         toastId: 'generating'
       });
       
       const response = await weeklyMenuAPI.generate(token, currentUser.uid);
-      setMenu(response.data);
+      setMenu(response.data.menu);
       
       toast.dismiss('generating');
       toast.success('Your weekly menu is ready! 🎉');
     } catch (error) {
       console.error('Error generating menu:', error);
       toast.dismiss('generating');
-      toast.error('Failed to generate menu. Please try again.');
+      
+      // Show specific error message
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to generate menu';
+      toast.error(errorMessage);
+      
+      // If user not found, try to refresh profile
+      if (error.response?.status === 404 && errorMessage.includes('User not found')) {
+        toast.info('Setting up your account... Please try again in a moment.');
+      }
     } finally {
       setGenerating(false);
     }

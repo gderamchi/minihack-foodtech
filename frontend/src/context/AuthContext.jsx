@@ -85,7 +85,31 @@ export const AuthProvider = ({ children }) => {
 
   // Sign in with email and password
   const signIn = async (email, password) => {
-    return await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    
+    // Ensure user exists in MongoDB
+    const token = await userCredential.user.getIdToken();
+    try {
+      const profile = await usersAPI.getProfile(token, userCredential.user.uid);
+      setUserProfile(profile.data);
+    } catch (error) {
+      if (error.response?.status === 404) {
+        // User doesn't exist in MongoDB - create them
+        await usersAPI.createOrUpdate({
+          firebaseUid: userCredential.user.uid,
+          email: userCredential.user.email,
+          name: userCredential.user.displayName || userCredential.user.email.split('@')[0]
+        }, token);
+        
+        // Fetch the newly created profile
+        const newProfile = await usersAPI.getProfile(token, userCredential.user.uid);
+        setUserProfile(newProfile.data);
+      } else {
+        throw error;
+      }
+    }
+    
+    return userCredential.user;
   };
 
   // Sign in with Google
