@@ -114,6 +114,15 @@ export const weeklyMenuAPI = {
   }, {
     headers: { Authorization: `Bearer ${token}` }
   }),
+  generateSingleMeal: (token, firebaseUid, day, mealType, menuId = null) => 
+    api.post('/weekly-menu/generate-meal', { 
+      firebaseUid,
+      day,
+      mealType,
+      menuId
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    }),
   getCurrent: (token, firebaseUid) => api.get('/weekly-menu/current', { 
     params: { firebaseUid },
     headers: { Authorization: `Bearer ${token}` }

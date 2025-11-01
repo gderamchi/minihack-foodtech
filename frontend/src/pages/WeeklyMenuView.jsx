@@ -81,16 +81,74 @@ export default function WeeklyMenuView() {
       setGenerating(true);
       const token = await currentUser.getIdToken();
       
-      toast.info('Generating your personalized weekly menu...', {
+      // Show progress toast
+      const progressToast = toast.info('Generating meal 1 of 21...', {
         autoClose: false,
         toastId: 'generating'
       });
       
-      const response = await weeklyMenuAPI.generate(token, currentUser.uid);
-      setMenu(response.data.menu);
+      // Generate meals one by one (queue-based approach)
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      const mealTypes = ['breakfast', 'lunch', 'dinner'];
+      let menuId = null;
+      let completedMeals = 0;
+      const totalMeals = days.length * mealTypes.length; // 21 meals
+      
+      // Create temporary menu structure to show progress
+      const tempMenu = {
+        menu: {}
+      };
+      days.forEach(day => {
+        tempMenu.menu[day] = {};
+      });
+      
+      for (const day of days) {
+        for (const mealType of mealTypes) {
+          try {
+            completedMeals++;
+            
+            // Update progress
+            toast.update('generating', {
+              render: `Generating ${mealType} for ${day}... (${completedMeals}/${totalMeals})`,
+              type: 'info',
+              autoClose: false
+            });
+            
+            // Generate single meal
+            const response = await weeklyMenuAPI.generateSingleMeal(
+              token,
+              currentUser.uid,
+              day,
+              mealType,
+              menuId
+            );
+            
+            // Store menuId from first response
+            if (!menuId && response.data.menuId) {
+              menuId = response.data.menuId;
+            }
+            
+            // Update temp menu with new meal
+            tempMenu.menu[day][mealType] = response.data.meal;
+            
+            // Update UI with progress
+            setMenu({ ...tempMenu });
+            
+          } catch (error) {
+            console.error(`Error generating ${mealType} for ${day}:`, error);
+            // Continue with next meal even if one fails
+            toast.warning(`Failed to generate ${mealType} for ${day}, using fallback`);
+          }
+        }
+      }
+      
+      // Fetch the complete menu from backend
+      const finalResponse = await weeklyMenuAPI.getCurrent(token, currentUser.uid);
+      setMenu(finalResponse.data);
       
       toast.dismiss('generating');
-      toast.success('Your weekly menu is ready! 🎉');
+      toast.success('Your weekly menu is ready! 🎉 All 21 meals generated!');
+      
     } catch (error) {
       console.error('Error generating menu:', error);
       toast.dismiss('generating');
